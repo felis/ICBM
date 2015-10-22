@@ -549,7 +549,7 @@ Console_printMenuTitle(MENU_TUNE_CNT, menuTune);</entry>
      <state name="Limits">
       <documentation>Manipulating BLDC controller limits</documentation>
       <entry>//Console_printItems(me, (ITEM**)limitsItems, LIMITS_CNT);
-Console_printMenuItems(me, (FIELD**)limitsFields, LIMITS_COUNT);</entry>
+Console_printMenuItems(me, (FIELD**)limitsFields, LIMITS_CNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -1121,6 +1121,11 @@ tmpdata |= tmpval;            //insert field
 
 return(A4960_xfer(field-&gt;reg + 1, tmpdata));//write</code>
     </operation>
+    <operation name="convPercent" type="uint16_t" visibility="0x02" properties="0x00">
+     <documentation>converts contents to percent (x6.25)</documentation>
+     <parameter name="field" type="FIELD*"/>
+     <code>return((getField(field) + 1)*625U);</code>
+    </operation>
    </package>
    <package name="Limits" stereotype="0x02">
     <operation name="A4960_ConvCommBlankTime" type="uint16_t" visibility="0x02" properties="0x00">
@@ -1157,6 +1162,23 @@ return((tmpdata &lt; 3) ? 100U : tmpdata*50U);</code>
 uint8_t tmpdata = getField(field);
 
 return(blanktimes[tmpdata]);</code>
+    </operation>
+    <operation name="ConvBlankTime" type="uint16_t" visibility="0x02" properties="0x00">
+     <documentation>returns value of Blank Time</documentation>
+     <parameter name="field" type="FIELD*"/>
+     <code>return(400U*getField(field));</code>
+    </operation>
+    <operation name="ConvDeadTime" type="uint16_t" visibility="0x02" properties="0x00">
+     <documentation>returns value of Config 0 DT field AKA Dead Time. DS p.26</documentation>
+     <parameter name="field" type="FIELD*"/>
+     <code>uint16_t tmpdata = getField(field);
+
+return((tmpdata &lt; 3) ? 100U : tmpdata*50U);</code>
+    </operation>
+    <operation name="ConvVdsThreshold" type="uint16_t" visibility="0x02" properties="0x00">
+     <documentation>returns value of Vds Threshold</documentation>
+     <parameter name="field" type="FIELD*"/>
+     <code>return(25U*getField(field));</code>
     </operation>
    </package>
    <package name="Run" stereotype="0x02">
@@ -1759,7 +1781,8 @@ const char const zen[] = &quot;\x08\x08\x08 0 - Enable, 1- Disable&quot;;
 //Common units
 
 const char const us[] = &quot;us&quot;;    //microseconds
-//const char const ns[] = &quot;ns&quot;;    //nanoseconds
+const char const ms[] = &quot;ms&quot;;    //milliseconds
+const char const pct[] = &quot;%&quot;;    //percent
 
 //- Static
 
@@ -1783,14 +1806,13 @@ $define(BSP::A4960::Common::getField)
 $define(BSP::A4960::Common::setField)
 
 $define(BSP::A4960::Common::A4960_convPercent)
-
+$define(BSP::A4960::Common::convPercent)
 //- Limits
-$define(BSP::A4960::Limits::A4960_ConvCommBlankTime)
 $define(BSP::A4960::Limits::ConvCommBlankTime)
-$define(BSP::A4960::Limits::A4960_ConvBlankTime)
-$define(BSP::A4960::Limits::A4960_ConvDeadTime)
-//- Common ConvPercent
-$define(BSP::A4960::Limits::A4960_ConvVdsThreshold)
+$define(BSP::A4960::Limits::ConvBlankTime)
+$define(BSP::A4960::Limits::ConvDeadTime)
+//- Common ConvPercent used for Curr.Sense Ratio
+$define(BSP::A4960::Limits::ConvVdsThreshold)
 
 /* Item access structure. Layout as follows:
 
@@ -1808,8 +1830,24 @@ FIELD const CommBlankTime =
     {&quot;Commutation Blank Time&quot;, us, 0U, A4960_CONF0_RD, 0x0c00,
         &amp;ConvCommBlankTime};
 
+FIELD const BlankTime = 
+    {&quot;Blank Time&quot;,us, 3U, A4960_CONF0_RD, 0x03c0,
+        &amp;ConvBlankTime};
+
+FIELD const DeadTime = 
+    {&quot;Dead Time&quot;,&quot;ns&quot;, 0U, A4960_CONF0_RD, 0x003f,
+        &amp;ConvDeadTime};
+
+FIELD const CurrentSenseRefRatio = 
+    {&quot;Current Sense&quot;,pct, 2U, A4960_CONF1_RD, 0x03c0,
+        &amp;convPercent};
+
+FIELD const VdsThreshold = 
+    {&quot;VDS Threshold&quot;,&quot;mV&quot;, 0U, A4960_CONF1_RD, 0x003f,
+        &amp;ConvVdsThreshold};
 
 
+#ifdef UNDEF
 
 ITEM const A4960_CommBlankTime = 
     {&quot;Comm. Blank Time&quot;, zen/*&quot;ns&quot;*/, 0U, A4960_CONF0_RD, 0x0c00,
@@ -1831,6 +1869,7 @@ ITEM const A4960_VdsThreshold =
     {&quot;VDS Threshold&quot;,&quot;mV&quot;, 0U, A4960_CONF1_RD, 0x003f,
         &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvVdsThreshold};
 
+#endif
 
 /* ----------------------------- */
 
@@ -2047,6 +2086,10 @@ $define(BSP::QPn::Q_onAssert)
 
 //- Access to 'Limits' fields
 extern FIELD const CommBlankTime;
+extern FIELD const BlankTime;
+extern FIELD const DeadTime;
+extern FIELD const CurrentSenseRefRatio;
+extern FIELD const VdsThreshold;
 
 //- Access to 'Limits' fields
 extern ITEM const A4960_CommBlankTime;
@@ -2152,12 +2195,13 @@ const ITEM* const uiItems[] = {};
 const char* const menuMess[] = {&quot;Limits&quot;,&quot;Run&quot;,&quot;Startup&quot;,&quot;Flags&quot;,&quot;Misc&quot;};
 #define MENU_MESS_CNT Q_DIM(menuMess)
 
-const ITEM* const limitsItems[] = {&amp;A4960_CommBlankTime, &amp;A4960_BlankTime,
-    &amp;A4960_DeadTime, &amp;A4960_CurrentSenseRefRatio, &amp;A4960_VdsThreshold};
-#define LIMITS_CNT Q_DIM(limitsItems)
+//const ITEM* const limitsItems[] = {&amp;A4960_CommBlankTime, &amp;A4960_BlankTime,
+//    &amp;A4960_DeadTime, &amp;A4960_CurrentSenseRefRatio, &amp;A4960_VdsThreshold};
+//#define LIMITS_CNT Q_DIM(limitsItems)
 
-const FIELD* const limitsFields[] = {&amp;CommBlankTime,&amp;CommBlankTime,&amp;CommBlankTime};
-#define LIMITS_COUNT Q_DIM(limitsFields)
+const FIELD* const limitsFields[] = {&amp;CommBlankTime,&amp;BlankTime,&amp;DeadTime,
+    &amp;CurrentSenseRefRatio, &amp;VdsThreshold};
+#define LIMITS_CNT Q_DIM(limitsFields)
 
 
 

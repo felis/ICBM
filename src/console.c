@@ -27,6 +27,10 @@
 
 //- Access to 'Limits' fields
 extern FIELD const CommBlankTime;
+extern FIELD const BlankTime;
+extern FIELD const DeadTime;
+extern FIELD const CurrentSenseRefRatio;
+extern FIELD const VdsThreshold;
 
 //- Access to 'Limits' fields
 extern ITEM const A4960_CommBlankTime;
@@ -132,12 +136,13 @@ const ITEM* const uiItems[] = {};
 const char* const menuMess[] = {"Limits","Run","Startup","Flags","Misc"};
 #define MENU_MESS_CNT Q_DIM(menuMess)
 
-const ITEM* const limitsItems[] = {&A4960_CommBlankTime, &A4960_BlankTime,
-    &A4960_DeadTime, &A4960_CurrentSenseRefRatio, &A4960_VdsThreshold};
-#define LIMITS_CNT Q_DIM(limitsItems)
+//const ITEM* const limitsItems[] = {&A4960_CommBlankTime, &A4960_BlankTime,
+//    &A4960_DeadTime, &A4960_CurrentSenseRefRatio, &A4960_VdsThreshold};
+//#define LIMITS_CNT Q_DIM(limitsItems)
 
-const FIELD* const limitsFields[] = {&CommBlankTime,&CommBlankTime,&CommBlankTime};
-#define LIMITS_COUNT Q_DIM(limitsFields)
+const FIELD* const limitsFields[] = {&CommBlankTime,&BlankTime,&DeadTime,
+    &CurrentSenseRefRatio, &VdsThreshold};
+#define LIMITS_CNT Q_DIM(limitsFields)
 
 
 
@@ -1164,7 +1169,7 @@ static QState Console_Tune(Console * const me) {
 /* ${AOs::Console::SM::Session::Limits} */
 static QState Console_Limits_e(Console * const me) {
     //Console_printItems(me, (ITEM**)limitsItems, LIMITS_CNT);
-    Console_printMenuItems(me, (FIELD**)limitsFields, LIMITS_COUNT);
+    Console_printMenuItems(me, (FIELD**)limitsFields, LIMITS_CNT);
     return QM_ENTRY(&Console_Limits_s);
 }
 /* ${AOs::Console::SM::Session::Limits} */

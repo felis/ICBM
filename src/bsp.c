@@ -138,7 +138,8 @@ const char const zen[] = "\x08\x08\x08 0 - Enable, 1- Disable";
 //Common units
 
 const char const us[] = "us";    //microseconds
-//const char const ns[] = "ns";    //nanoseconds
+const char const ms[] = "ms";    //milliseconds
+const char const pct[] = "%";    //percent
 
 //- Static
 
@@ -390,16 +391,12 @@ uint16_t setField(uint16_t val, FIELD* field) {
 static uint16_t A4960_convPercent(ITEM* item) {
     return((A4960_getField(item) + 1)*625U);
 }
-
-//- Limits
-/*${BSP::A4960::Limits::A4960_ConvCommBl~} .................................*/
-static uint16_t A4960_ConvCommBlankTime(ITEM* item) {
-    const uint16_t const blanktimes[] = {50U,100U,400U,1000U};
-
-    uint8_t tmpdata = A4960_getField(item);
-
-    return(blanktimes[tmpdata]);
+/*${BSP::A4960::Common::convPercent} .......................................*/
+static uint16_t convPercent(FIELD* field) {
+    return((getField(field) + 1)*625U);
 }
+//- Limits
+//$define(BSP::A4960::Limits::A4960_ConvCommBlankTime)
 /*${BSP::A4960::Limits::ConvCommBlankTim~} .................................*/
 static uint16_t ConvCommBlankTime(FIELD* field) {
     const uint16_t const blanktimes[] = {50U,100U,400U,1000U};
@@ -408,20 +405,20 @@ static uint16_t ConvCommBlankTime(FIELD* field) {
 
     return(blanktimes[tmpdata]);
 }
-/*${BSP::A4960::Limits::A4960_ConvBlankT~} .................................*/
-static uint16_t A4960_ConvBlankTime(ITEM* item) {
-    return(400U*A4960_getField(item));
+/*${BSP::A4960::Limits::ConvBlankTime} .....................................*/
+static uint16_t ConvBlankTime(FIELD* field) {
+    return(400U*getField(field));
 }
-/*${BSP::A4960::Limits::A4960_ConvDeadTi~} .................................*/
-static uint16_t A4960_ConvDeadTime(ITEM* item) {
-    uint16_t tmpdata = A4960_getField(item);
+/*${BSP::A4960::Limits::ConvDeadTime} ......................................*/
+static uint16_t ConvDeadTime(FIELD* field) {
+    uint16_t tmpdata = getField(field);
 
     return((tmpdata < 3) ? 100U : tmpdata*50U);
 }
-//- Common ConvPercent
-/*${BSP::A4960::Limits::A4960_ConvVdsThr~} .................................*/
-static uint16_t A4960_ConvVdsThreshold(ITEM* item) {
-    return(25U*A4960_getField(item));
+//- Common ConvPercent used for Curr.Sense Ratio
+/*${BSP::A4960::Limits::ConvVdsThreshold} ..................................*/
+static uint16_t ConvVdsThreshold(FIELD* field) {
+    return(25U*getField(field));
 }
 
 /* Item access structure. Layout as follows:
@@ -440,8 +437,26 @@ FIELD const CommBlankTime =
     {"Commutation Blank Time", us, 0U, A4960_CONF0_RD, 0x0c00,
         &ConvCommBlankTime};
 
+FIELD const BlankTime =
+    {"Blank Time",us, 3U, A4960_CONF0_RD, 0x03c0,
+        &ConvBlankTime};
+
+FIELD const DeadTime =
+    {"Dead Time","ns", 0U, A4960_CONF0_RD, 0x003f,
+        &ConvDeadTime};
+
+FIELD const CurrentSenseRefRatio =
+    {"Current Sense",pct, 2U, A4960_CONF1_RD, 0x03c0,
+        &convPercent};
+
+FIELD const VdsThreshold =
+    {"VDS Threshold","mV", 0U, A4960_CONF1_RD, 0x003f,
+        &ConvVdsThreshold};
 
 
+
+
+#ifdef UNDEF
 
 ITEM const A4960_CommBlankTime =
     {"Comm. Blank Time", zen/*"ns"*/, 0U, A4960_CONF0_RD, 0x0c00,
@@ -463,6 +478,7 @@ ITEM const A4960_VdsThreshold =
     {"VDS Threshold","mV", 0U, A4960_CONF1_RD, 0x003f,
         &A4960_getField, &A4960_setField, &A4960_ConvVdsThreshold};
 
+#endif
 
 /* ----------------------------- */
 
