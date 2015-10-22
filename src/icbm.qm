@@ -201,15 +201,15 @@ for(i = 0; i &lt; cnt; i++) {
 
     Console_printStr(&quot;], &quot;);
 
-    if(field[i]-&gt;conv) {    //conversion needed
+    //if(field[i]-&gt;conv) {    //conversion needed
         Console_printNum(field[i]-&gt;conv(&amp;(*field[i])),
                          10,
                          field[i]-&gt;point);           //field contents, converted
-    } else {
-        Console_printNum(getField(&amp;(*field[i])),
-                         10,
-                         field[i]-&gt;point);             //field contents, decimal
-    }
+    //} else {
+    //    Console_printNum(getField(&amp;(*field[i])),
+    //                     10,
+    //                     field[i]-&gt;point);             //field contents, decimal
+    //}
                 
     Console_printStr(space);
     Console_printStr(field[i]-&gt;unit);        //field unit
@@ -1846,6 +1846,47 @@ FIELD const VdsThreshold =
     {&quot;VDS Threshold&quot;,&quot;mV&quot;, 0U, A4960_CONF1_RD, 0x003f,
         &amp;ConvVdsThreshold};
 
+//- Run
+$define(BSP::A4960::Run::A4960_ConvFixedOffTime)
+$define(BSP::A4960::Run::A4960_ConvPhaseAdvance)
+//BemfHyst - get
+$define(BSP::A4960::Run::A4960_ConvBemfWindow)
+//Brake - get
+//Direction - get
+//Run - get
+
+
+ITEM const A4960_FixedOffTime = 
+    {&quot;Fixed Off Time&quot;, &quot;us&quot;, 1U, A4960_CONF2_RD, 0x001f,
+        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvFixedOffTime};
+
+ITEM const A4960_PhaseAdvance = 
+    {&quot;Phase Advance&quot;,&quot;deg(e)&quot;, 3U, A4960_CONF5_RD, 0x0c00,
+        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvPhaseAdvance};
+
+ITEM const A4960_BemfHyst = 
+    {&quot;BEMF Hysteresis&quot;,&quot;0 - Auto, 1 - None, 2 - High, 3 - Low&quot;, 0U, A4960_RUN_RD, 0x0c00,
+        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+
+ITEM const A4960_BemfWindow = 
+    {&quot;BEMF Window&quot;,&quot;us&quot;, 0U, A4960_RUN_RD, 0x0380,
+        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvBemfWindow};
+
+ITEM const A4960_Brake = 
+    {&quot;Brake&quot;,&quot;0 - Off, 1 - On&quot;, 0U, A4960_RUN_RD, 0x0004,
+        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+
+ITEM const A4960_Direction = 
+    {&quot;Direction&quot;,&quot;0 - Fwd, 1 - Rev&quot;, 0U, A4960_RUN_RD, 0x0002,
+        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+
+ITEM const A4960_Run = 
+    {&quot;Run&quot;,&quot;0 - Coast, 1 - Run&quot;, 0U, A4960_RUN_RD, 0x0001,
+        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+
+
+
+
 
 #ifdef UNDEF
 
@@ -1869,7 +1910,7 @@ ITEM const A4960_VdsThreshold =
     {&quot;VDS Threshold&quot;,&quot;mV&quot;, 0U, A4960_CONF1_RD, 0x003f,
         &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvVdsThreshold};
 
-#endif
+
 
 /* ----------------------------- */
 
@@ -1911,6 +1952,8 @@ ITEM const A4960_Run =
     {&quot;Run&quot;,&quot;0 - Coast, 1 - Run&quot;, 0U, A4960_RUN_RD, 0x0001,
         &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
 
+
+#endif
 
 //HoldTorque - percent
 $define(BSP::A4960::Startup::A4960_ConvHoldTime)

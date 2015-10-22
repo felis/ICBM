@@ -4,3 +4,4 @@ src/build/
 src/dist/
 src/Makefile
 src/.icbm
+doc/

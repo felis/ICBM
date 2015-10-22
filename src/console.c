@@ -589,15 +589,15 @@ static void Console_printMenuItems(Console * const me, FIELD** field, uint8_t cn
 
         Console_printStr("], ");
 
-        if(field[i]->conv) {    //conversion needed
+        //if(field[i]->conv) {    //conversion needed
             Console_printNum(field[i]->conv(&(*field[i])),
                              10,
                              field[i]->point);           //field contents, converted
-        } else {
-            Console_printNum(getField(&(*field[i])),
-                             10,
-                             field[i]->point);             //field contents, decimal
-        }
+        //} else {
+        //    Console_printNum(getField(&(*field[i])),
+        //                     10,
+        //                     field[i]->point);             //field contents, decimal
+        //}
 
         Console_printStr(space);
         Console_printStr(field[i]->unit);        //field unit
