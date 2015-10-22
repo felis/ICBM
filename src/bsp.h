@@ -178,6 +178,22 @@ typedef struct item_t {                //item structure
     uint16_t(*conv)(struct item_t*);
 } ITEM;
 
+/* Config field definition format */
+typedef struct field_t {
+    const char* const title;            //what is printed on the screen
+    const char* const unit;             //unit of measurement
+    uint8_t point;                      //decimal point
+    uint8_t reg;                        //register
+    uint16_t mask;                      //field mask
+    uint16_t(*conv)(struct field_t*);    //conversion utility
+} FIELD;
+
+
+
 void BSP_init(void);
+
+uint16_t getField( FIELD* field );                  //get A4960 field
+uint16_t setField( uint16_t val, FIELD* field );    //set A4960 field
+
 
 #endif                                                             /* bsp_h */

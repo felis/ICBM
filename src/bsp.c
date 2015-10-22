@@ -20,6 +20,10 @@
 #include "bsp.h"
 #include "icbm.h"
 #include <libpic30.h>
+//rev0 notes
+//1.console on UART1
+//SPI1
+//CS on pin 25
 
 /* PIC24FV16KM202-specific */
 
@@ -130,6 +134,11 @@ volatile uint8_t heeq_Tail;    //interrupt changes this
 
 //Enable-disable message
 const char const zen[] = "\x08\x08\x08 0 - Enable, 1- Disable";
+
+//Common units
+
+const char const us[] = "us";    //microseconds
+//const char const ns[] = "ns";    //nanoseconds
 
 //- Static
 
@@ -345,6 +354,38 @@ static uint16_t A4960_setField(uint16_t val, ITEM* item) {
 
     return(A4960_xfer(item->reg + 1, tmpdata));//write
 }
+/*${BSP::A4960::Common::getField} ..........................................*/
+uint16_t getField(FIELD* field) {
+    uint16_t tmpdata = A4960_xfer(field->reg,0U);
+    uint16_t tmpmask = field->mask;
+
+    tmpdata &= tmpmask;    //clear the rest
+
+    while((tmpmask & 0x01) == 0) {    //LSB equals 0
+        tmpmask >>= 1;
+        tmpdata >>= 1;
+    };
+
+    return(tmpdata);
+}
+/*${BSP::A4960::Common::setField} ..........................................*/
+uint16_t setField(uint16_t val, FIELD* field) {
+    uint16_t tmpdata = A4960_xfer(field->reg,0U);
+    uint16_t tmpmask = field->mask;
+    uint16_t tmpval = val;
+
+    tmpdata &= ~tmpmask; //clear the field position
+
+    while((tmpmask & 0x1) == 0) { //LSB equals 0
+        tmpmask >>= 1;
+        tmpval <<= 1;
+    }
+
+    tmpdata |= tmpval;            //insert field
+
+    return(A4960_xfer(field->reg + 1, tmpdata));//write
+}
+
 /*${BSP::A4960::Common::A4960_convPercen~} .................................*/
 static uint16_t A4960_convPercent(ITEM* item) {
     return((A4960_getField(item) + 1)*625U);
@@ -356,6 +397,14 @@ static uint16_t A4960_ConvCommBlankTime(ITEM* item) {
     const uint16_t const blanktimes[] = {50U,100U,400U,1000U};
 
     uint8_t tmpdata = A4960_getField(item);
+
+    return(blanktimes[tmpdata]);
+}
+/*${BSP::A4960::Limits::ConvCommBlankTim~} .................................*/
+static uint16_t ConvCommBlankTime(FIELD* field) {
+    const uint16_t const blanktimes[] = {50U,100U,400U,1000U};
+
+    uint8_t tmpdata = getField(field);
 
     return(blanktimes[tmpdata]);
 }
@@ -382,10 +431,17 @@ unit - what is printed after the value
 point - decimal point
 reg - register containing the item
 mask - bitmask of an item inside the register
-get - function to get contents
-set - function to set contents
+get - function to get contents -->redundant?
+set - function to set contents -->same as above
 conv - function to convert contents to value
 */
+
+FIELD const CommBlankTime =
+    {"Commutation Blank Time", us, 0U, A4960_CONF0_RD, 0x0c00,
+        &ConvCommBlankTime};
+
+
+
 
 ITEM const A4960_CommBlankTime =
     {"Comm. Blank Time", zen/*"ns"*/, 0U, A4960_CONF0_RD, 0x0c00,

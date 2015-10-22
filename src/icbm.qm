@@ -98,13 +98,6 @@ Console_printStr(crlf);</code>
     <parameter name="cnt" type="uint8_t"/>
     <code>uint8_t i;
 
-static __pack_upper_byte uint8_t banner[] = &quot;\r\nPress number to select menu item,&quot;;
-//                                     &quot;\r\nthen w,a,s,d to change it&quot;
-//                                     &quot;\r\n\n0. Back&quot;;
-
-
-Console_printPstr(banner);
-
 Console_printStr(&quot;\r\nPress number to select field,&quot;);
 Console_printStr(&quot;\r\nthen w,a,s,d to change it&quot;);
 Console_printStr(&quot;\r\n\n0. Back&quot;);
@@ -177,26 +170,95 @@ item[me-&gt;menuselect-1]-&gt;set(tmpdata,&amp;(*item[me-&gt;menuselect-1]));</c
     <parameter name="me" type="Tacho* const"/>
     <code>QMsm_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Tacho_initial));</code>
    </operation>
-   <operation name="printPstr" type="void" visibility="0x02" properties="0x01">
-    <documentation>prints packed string</documentation>
-    <parameter name="str" type="__pack_upper_byte uint8_t*"/>
-    <code>uint8_t tmphead = consoleHead + 1;
+   <operation name="printMenuItems" type="void" visibility="0x02" properties="0x00">
+    <documentation>Prints set of items defined by array of pointers to access methods</documentation>
+    <parameter name="field" type="FIELD**"/>
+    <parameter name="cnt" type="uint8_t"/>
+    <code>uint8_t i;
 
-#if CONSOLE_BUFMASK &lt; 255
-tmphead &amp;= CONSOLE_BUFMASK;
-#endif
+Console_printStr(&quot;\r\nPress number to select field,&quot;
+                 &quot;\r\nthen w,a,s,d to change it.&quot;
+                 &quot;\r\n\n0. Back&quot;);
 
-while(tmphead == consoleTail) {}     //this line blocks!
+//Console_printStr(&quot;\r\nPress number to select field,&quot;);
+//Console_printStr(&quot;\r\nthen w,a,s,d to change it&quot;);
+//Console_printStr(&quot;\r\n\n0. Back&quot;);
 
-//console_Buf[tmphead] = str;
-consoleHead = tmphead;
+Console_printStr(crlf);
 
-if( _U1TXIE == 0) {    //trigger interrupt. todo: may not be necessary - check!
-    _U1TXIF = 1;
-    _U1TXIE = 1;
+for(i = 0; i &lt; cnt; i++) {
+    if(i+1 == me-&gt;menuselect) {    //highlight
+        Console_printStr(&quot;&gt;&gt;&gt; &quot;);
+    } else {
+        Console_printNum(i+1, 10, 0U);
+        Console_printStr(&quot;. &quot;);
+    }
+
+    Console_printStr(field[i]-&gt;title);    //field name
+
+    Console_printStr(&quot; [&quot;);
+    Console_printNum(getField(&amp;(*field[i])), 2, 0U);    //field contents, binary
+
+    Console_printStr(&quot;], &quot;);
+
+    if(field[i]-&gt;conv) {    //conversion needed
+        Console_printNum(field[i]-&gt;conv(&amp;(*field[i])),
+                         10,
+                         field[i]-&gt;point);           //field contents, converted
+    } else {
+        Console_printNum(getField(&amp;(*field[i])),
+                         10,
+                         field[i]-&gt;point);             //field contents, decimal
+    }
+                
+    Console_printStr(space);
+    Console_printStr(field[i]-&gt;unit);        //field unit
+    Console_printStr(crlf);
+}
+Console_printStr(crlf);</code>
+   </operation>
+   <operation name="handleMenuItems" type="void" visibility="0x02" properties="0x00">
+    <parameter name="key" type="uint8_t"/>
+    <parameter name="field" type="FIELD**"/>
+    <parameter name="cnt" type="uint8_t"/>
+    <code>uint8_t tmpdata = atoi((const char*)&amp;key);
+
+if(isdigit(key)) {    //numeric
+    if(tmpdata &gt; cnt) {
+        return;    //wrong key, do not handle
+    }
+    else {
+        me-&gt;menuselect = tmpdata;    //remember selection
+        return;
+    }
 }
 
-return;</code>
+if(me-&gt;menuselect == 0) {
+    return;    //no further processing necessary
+}
+
+//tmpdata =
+//    item[me-&gt;menuselect-1]-&gt;get(&amp;(*item[me-&gt;menuselect-1]));
+tmpdata = getField(&amp;(*field[me-&gt;menuselect-1]));
+
+if(key == 'w' || key == 'W') {    //increment
+    tmpdata++;
+}
+
+if(key == 's' || key == 'S') {    //decrement
+    tmpdata--;
+}
+
+uint16_t tmplen = field[me-&gt;menuselect-1]-&gt;mask;
+
+while((tmplen &amp; 0x01) == 0 ) { //LSB eq zero
+    tmplen &gt;&gt;= 1;
+}
+
+tmpdata &amp;= tmplen;
+
+setField(tmpdata,&amp;(*field[me-&gt;menuselect-1]));
+//field[me-&gt;menuselect-1]-&gt;set(tmpdata,&amp;(*item[me-&gt;menuselect-1]));</code>
    </operation>
    <statechart>
     <initial target="../1/9">
@@ -486,7 +548,8 @@ Console_printMenuTitle(MENU_TUNE_CNT, menuTune);</entry>
      </state>
      <state name="Limits">
       <documentation>Manipulating BLDC controller limits</documentation>
-      <entry>Console_printItems(me, (ITEM**)limitsItems, LIMITS_CNT);</entry>
+      <entry>//Console_printItems(me, (ITEM**)limitsItems, LIMITS_CNT);
+Console_printMenuItems(me, (FIELD**)limitsFields, LIMITS_COUNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -496,8 +559,11 @@ Console_printMenuTitle(MENU_TUNE_CNT, menuTune);</entry>
        </choice>
        <choice target="../..">
         <guard>else</guard>
-        <action>Console_handleItems
-    (me,(uint8_t)Q_PAR(me),(ITEM**)limitsItems, LIMITS_CNT);</action>
+        <action>//Console_handleItems
+//    (me,(uint8_t)Q_PAR(me),(ITEM**)limitsItems, LIMITS_CNT);
+
+Console_handleMenuItems
+    (me,(uint8_t)Q_PAR(me),(FIELD**)limitsFields, LIMITS_CNT);</action>
         <choice_glyph conn="58,47,4,3,-3,-8">
          <action box="-4,-5,4,2"/>
         </choice_glyph>
@@ -1021,6 +1087,40 @@ return(A4960_xfer(item-&gt;reg + 1, tmpdata));//write</code>
      <parameter name="item" type="ITEM*"/>
      <code>return((A4960_getField(item) + 1)*625U);</code>
     </operation>
+    <operation name="getField" type="uint16_t" visibility="0x00" properties="0x00">
+     <documentation>get contents of a 'reg' and extracts field defined by 'mask'</documentation>
+     <parameter name="field" type="FIELD*"/>
+     <code>uint16_t tmpdata = A4960_xfer(field-&gt;reg,0U);
+uint16_t tmpmask = field-&gt;mask;
+
+tmpdata &amp;= tmpmask;    //clear the rest
+
+while((tmpmask &amp; 0x01) == 0) {    //LSB equals 0
+    tmpmask &gt;&gt;= 1;
+    tmpdata &gt;&gt;= 1;
+};
+
+return(tmpdata);</code>
+    </operation>
+    <operation name="setField" type="uint16_t" visibility="0x00" properties="0x00">
+     <documentation>'val' sets content of the field defined by 'reg', 'mask'</documentation>
+     <parameter name="val" type="uint16_t"/>
+     <parameter name="field" type="FIELD*"/>
+     <code>uint16_t tmpdata = A4960_xfer(field-&gt;reg,0U);
+uint16_t tmpmask = field-&gt;mask;
+uint16_t tmpval = val;
+
+tmpdata &amp;= ~tmpmask; //clear the field position
+
+while((tmpmask &amp; 0x1) == 0) { //LSB equals 0
+    tmpmask &gt;&gt;= 1;
+    tmpval &lt;&lt;= 1;
+}
+
+tmpdata |= tmpval;            //insert field
+
+return(A4960_xfer(field-&gt;reg + 1, tmpdata));//write</code>
+    </operation>
    </package>
    <package name="Limits" stereotype="0x02">
     <operation name="A4960_ConvCommBlankTime" type="uint16_t" visibility="0x02" properties="0x00">
@@ -1048,6 +1148,15 @@ return((tmpdata &lt; 3) ? 100U : tmpdata*50U);</code>
      <documentation>returns value of Vds Threshold</documentation>
      <parameter name="item" type="ITEM*"/>
      <code>return(25U*A4960_getField(item));</code>
+    </operation>
+    <operation name="ConvCommBlankTime" type="uint16_t" visibility="0x02" properties="0x00">
+     <documentation>Communication Blank Time converter</documentation>
+     <parameter name="field" type="FIELD*"/>
+     <code>const uint16_t const blanktimes[] = {50U,100U,400U,1000U};
+
+uint8_t tmpdata = getField(field);
+
+return(blanktimes[tmpdata]);</code>
     </operation>
    </package>
    <package name="Run" stereotype="0x02">
@@ -1477,7 +1586,23 @@ typedef struct item_t {                //item structure
     uint16_t(*conv)(struct item_t*);
 } ITEM;
 
+/* Config field definition format */
+typedef struct field_t {                
+    const char* const title;            //what is printed on the screen        
+    const char* const unit;             //unit of measurement
+    uint8_t point;                      //decimal point
+    uint8_t reg;                        //register
+    uint16_t mask;                      //field mask 
+    uint16_t(*conv)(struct field_t*);    //conversion utility
+} FIELD;
+
+
+
 void BSP_init(void);
+
+uint16_t getField( FIELD* field );                  //get A4960 field
+uint16_t setField( uint16_t val, FIELD* field );    //set A4960 field
+
 
 #endif                                                             /* bsp_h */</text>
   </file>
@@ -1516,6 +1641,10 @@ int_t main () {
 #include &quot;bsp.h&quot;
 #include &quot;icbm.h&quot;
 #include &lt;libpic30.h&gt;
+//rev0 notes
+//1.console on UART1
+//SPI1
+//CS on pin 25
 
 /* PIC24FV16KM202-specific */
 
@@ -1627,6 +1756,11 @@ volatile uint8_t heeq_Tail;    //interrupt changes this
 //Enable-disable message
 const char const zen[] = &quot;\x08\x08\x08 0 - Enable, 1- Disable&quot;;
 
+//Common units
+
+const char const us[] = &quot;us&quot;;    //microseconds
+//const char const ns[] = &quot;ns&quot;;    //nanoseconds
+
 //- Static
 
 static uint8_t tach_ro;    //rollover count for Tacho 
@@ -1645,10 +1779,14 @@ $define(BSP::A4960::Common::SPI_init)
 $define(BSP::A4960::Common::A4960_xfer)
 $define(BSP::A4960::Common::A4960_getField)
 $define(BSP::A4960::Common::A4960_setField)
+$define(BSP::A4960::Common::getField)
+$define(BSP::A4960::Common::setField)
+
 $define(BSP::A4960::Common::A4960_convPercent)
 
 //- Limits
 $define(BSP::A4960::Limits::A4960_ConvCommBlankTime)
+$define(BSP::A4960::Limits::ConvCommBlankTime)
 $define(BSP::A4960::Limits::A4960_ConvBlankTime)
 $define(BSP::A4960::Limits::A4960_ConvDeadTime)
 //- Common ConvPercent
@@ -1661,10 +1799,17 @@ unit - what is printed after the value
 point - decimal point
 reg - register containing the item
 mask - bitmask of an item inside the register
-get - function to get contents
-set - function to set contents
+get - function to get contents --&gt;redundant?
+set - function to set contents --&gt;same as above
 conv - function to convert contents to value
 */
+
+FIELD const CommBlankTime =
+    {&quot;Commutation Blank Time&quot;, us, 0U, A4960_CONF0_RD, 0x0c00,
+        &amp;ConvCommBlankTime};
+
+
+
 
 ITEM const A4960_CommBlankTime = 
     {&quot;Comm. Blank Time&quot;, zen/*&quot;ns&quot;*/, 0U, A4960_CONF0_RD, 0x0c00,
@@ -1890,7 +2035,7 @@ $define(BSP::QPn::Q_onAssert)
 </text>
   </file>
   <file name="console.c">
-   <text>/* Allegro A4960 BLDC test fixture serial console AO */
+   <text>/* Interactive Controller for Brushless Motors serial console AO */
 #include &quot;qpn_port.h&quot;
 #include &quot;icbm.h&quot;
 #include &quot;bsp.h&quot;
@@ -1899,6 +2044,10 @@ $define(BSP::QPn::Q_onAssert)
 #include &lt;ctype.h&gt;
 
 // A4960
+
+//- Access to 'Limits' fields
+extern FIELD const CommBlankTime;
+
 //- Access to 'Limits' fields
 extern ITEM const A4960_CommBlankTime;
 extern ITEM const A4960_BlankTime;
@@ -2006,6 +2155,13 @@ const char* const menuMess[] = {&quot;Limits&quot;,&quot;Run&quot;,&quot;Startup
 const ITEM* const limitsItems[] = {&amp;A4960_CommBlankTime, &amp;A4960_BlankTime,
     &amp;A4960_DeadTime, &amp;A4960_CurrentSenseRefRatio, &amp;A4960_VdsThreshold};
 #define LIMITS_CNT Q_DIM(limitsItems)
+
+const FIELD* const limitsFields[] = {&amp;CommBlankTime,&amp;CommBlankTime,&amp;CommBlankTime};
+#define LIMITS_COUNT Q_DIM(limitsFields)
+
+
+
+
 
 const ITEM* const runItems[] =
     {&amp;A4960_FixedOffTime, &amp;A4960_PhaseAdvance, &amp;A4960_BemfHyst,

@@ -15,7 +15,7 @@
 * for more details.
 *****************************************************************************/
 /*${.::console.c} ..........................................................*/
-/* Allegro A4960 BLDC test fixture serial console AO */
+/* Interactive Controller for Brushless Motors serial console AO */
 #include "qpn_port.h"
 #include "icbm.h"
 #include "bsp.h"
@@ -24,6 +24,10 @@
 #include <ctype.h>
 
 // A4960
+
+//- Access to 'Limits' fields
+extern FIELD const CommBlankTime;
+
 //- Access to 'Limits' fields
 extern ITEM const A4960_CommBlankTime;
 extern ITEM const A4960_BlankTime;
@@ -132,6 +136,13 @@ const ITEM* const limitsItems[] = {&A4960_CommBlankTime, &A4960_BlankTime,
     &A4960_DeadTime, &A4960_CurrentSenseRefRatio, &A4960_VdsThreshold};
 #define LIMITS_CNT Q_DIM(limitsItems)
 
+const FIELD* const limitsFields[] = {&CommBlankTime,&CommBlankTime,&CommBlankTime};
+#define LIMITS_COUNT Q_DIM(limitsFields)
+
+
+
+
+
 const ITEM* const runItems[] =
     {&A4960_FixedOffTime, &A4960_PhaseAdvance, &A4960_BemfHyst,
      &A4960_BemfWindow, &A4960_Brake, &A4960_Direction, &A4960_Run};
@@ -215,7 +226,12 @@ static void Console_handleItems(
     ITEM** item,
     uint8_t cnt);
 static void Console_Tacho_ctor(Tacho* const me);
-static void Console_printPstr(__pack_upper_byte uint8_t* str);
+static void Console_printMenuItems(Console * const me, FIELD** field, uint8_t cnt);
+static void Console_handleMenuItems(
+    Console * const me,
+    uint8_t key,
+    FIELD** field,
+    uint8_t cnt);
 
 /* protected: */
 static QState Console_initial(Console * const me);
@@ -464,13 +480,6 @@ static void Console_printMenuTitle(uint8_t count, const char* const* menu) {
 static void Console_printItems(Console * const me, ITEM** item, uint8_t cnt) {
     uint8_t i;
 
-    static __pack_upper_byte uint8_t banner[] = "\r\nPress number to select menu item,";
-    //                                     "\r\nthen w,a,s,d to change it"
-    //                                     "\r\n\n0. Back";
-
-
-    Console_printPstr(banner);
-
     Console_printStr("\r\nPress number to select field,");
     Console_printStr("\r\nthen w,a,s,d to change it");
     Console_printStr("\r\n\n0. Back");
@@ -546,25 +555,96 @@ static void Console_handleItems(
 static void Console_Tacho_ctor(Tacho* const me) {
     QMsm_ctor(&me->super, Q_STATE_CAST(&Tacho_initial));
 }
-/*${AOs::Console::printPstr} ...............................................*/
-static void Console_printPstr(__pack_upper_byte uint8_t* str) {
-    uint8_t tmphead = consoleHead + 1;
+/*${AOs::Console::printMenuItems} ..........................................*/
+static void Console_printMenuItems(Console * const me, FIELD** field, uint8_t cnt) {
+    uint8_t i;
 
-    #if CONSOLE_BUFMASK < 255
-    tmphead &= CONSOLE_BUFMASK;
-    #endif
+    Console_printStr("\r\nPress number to select field,"
+                     "\r\nthen w,a,s,d to change it."
+                     "\r\n\n0. Back");
 
-    while(tmphead == consoleTail) {}     //this line blocks!
+    //Console_printStr("\r\nPress number to select field,");
+    //Console_printStr("\r\nthen w,a,s,d to change it");
+    //Console_printStr("\r\n\n0. Back");
 
-    //console_Buf[tmphead] = str;
-    consoleHead = tmphead;
+    Console_printStr(crlf);
 
-    if( _U1TXIE == 0) {    //trigger interrupt. todo: may not be necessary - check!
-        _U1TXIF = 1;
-        _U1TXIE = 1;
+    for(i = 0; i < cnt; i++) {
+        if(i+1 == me->menuselect) {    //highlight
+            Console_printStr(">>> ");
+        } else {
+            Console_printNum(i+1, 10, 0U);
+            Console_printStr(". ");
+        }
+
+        Console_printStr(field[i]->title);    //field name
+
+        Console_printStr(" [");
+        Console_printNum(getField(&(*field[i])), 2, 0U);    //field contents, binary
+
+        Console_printStr("], ");
+
+        if(field[i]->conv) {    //conversion needed
+            Console_printNum(field[i]->conv(&(*field[i])),
+                             10,
+                             field[i]->point);           //field contents, converted
+        } else {
+            Console_printNum(getField(&(*field[i])),
+                             10,
+                             field[i]->point);             //field contents, decimal
+        }
+
+        Console_printStr(space);
+        Console_printStr(field[i]->unit);        //field unit
+        Console_printStr(crlf);
+    }
+    Console_printStr(crlf);
+}
+/*${AOs::Console::handleMenuItems} .........................................*/
+static void Console_handleMenuItems(
+    Console * const me,
+    uint8_t key,
+    FIELD** field,
+    uint8_t cnt)
+{
+    uint8_t tmpdata = atoi((const char*)&key);
+
+    if(isdigit(key)) {    //numeric
+        if(tmpdata > cnt) {
+            return;    //wrong key, do not handle
+        }
+        else {
+            me->menuselect = tmpdata;    //remember selection
+            return;
+        }
     }
 
-    return;
+    if(me->menuselect == 0) {
+        return;    //no further processing necessary
+    }
+
+    //tmpdata =
+    //    item[me->menuselect-1]->get(&(*item[me->menuselect-1]));
+    tmpdata = getField(&(*field[me->menuselect-1]));
+
+    if(key == 'w' || key == 'W') {    //increment
+        tmpdata++;
+    }
+
+    if(key == 's' || key == 'S') {    //decrement
+        tmpdata--;
+    }
+
+    uint16_t tmplen = field[me->menuselect-1]->mask;
+
+    while((tmplen & 0x01) == 0 ) { //LSB eq zero
+        tmplen >>= 1;
+    }
+
+    tmpdata &= tmplen;
+
+    setField(tmpdata,&(*field[me->menuselect-1]));
+    //field[me->menuselect-1]->set(tmpdata,&(*item[me->menuselect-1]));
 }
 /*${AOs::Console::SM} ......................................................*/
 static QState Console_initial(Console * const me) {
@@ -1083,7 +1163,8 @@ static QState Console_Tune(Console * const me) {
 /*${AOs::Console::SM::Session::Limits} .....................................*/
 /* ${AOs::Console::SM::Session::Limits} */
 static QState Console_Limits_e(Console * const me) {
-    Console_printItems(me, (ITEM**)limitsItems, LIMITS_CNT);
+    //Console_printItems(me, (ITEM**)limitsItems, LIMITS_CNT);
+    Console_printMenuItems(me, (FIELD**)limitsFields, LIMITS_COUNT);
     return QM_ENTRY(&Console_Limits_s);
 }
 /* ${AOs::Console::SM::Session::Limits} */
@@ -1118,8 +1199,11 @@ static QState Console_Limits(Console * const me) {
                         Q_ACTION_CAST(0) /* zero terminator */
                     }
                 };
-                Console_handleItems
-                    (me,(uint8_t)Q_PAR(me),(ITEM**)limitsItems, LIMITS_CNT);
+                //Console_handleItems
+                //    (me,(uint8_t)Q_PAR(me),(ITEM**)limitsItems, LIMITS_CNT);
+
+                Console_handleMenuItems
+                    (me,(uint8_t)Q_PAR(me),(FIELD**)limitsFields, LIMITS_CNT);
                 status_ = QM_TRAN(&tatbl_);
             }
             break;
