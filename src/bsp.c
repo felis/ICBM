@@ -427,8 +427,6 @@ unit - what is printed after the value
 point - decimal point
 reg - register containing the item
 mask - bitmask of an item inside the register
-get - function to get contents -->redundant?
-set - function to set contents -->same as above
 conv - function to convert contents to value
 */
 
@@ -453,55 +451,51 @@ FIELD const VdsThreshold =
         &ConvVdsThreshold};
 
 //- Run
-/*${BSP::A4960::Run::A4960_ConvFixedO~} ....................................*/
-static uint16_t A4960_ConvFixedOffTime(ITEM* item) {
-    return(10+(A4960_getField(item)*16U));
+/*${BSP::A4960::Run::ConvFixedOffTime} .....................................*/
+static uint16_t ConvFixedOffTime(FIELD* field) {
+    return(10+(getField(field)*16U));
 }
-/*${BSP::A4960::Run::A4960_ConvPhaseA~} ....................................*/
-static uint16_t A4960_ConvPhaseAdvance(ITEM* item) {
-    return(A4960_getField(item)*1875U); //deg(e), DS p.28
+/*${BSP::A4960::Run::ConvPhaseAdvance} .....................................*/
+static uint16_t ConvPhaseAdvance(FIELD* field) {
+    return(getField(field)*1875U); //deg(e), DS p.28
 }
 //BemfHyst - get
-/*${BSP::A4960::Run::A4960_ConvBemfWi~} ....................................*/
-static uint16_t A4960_ConvBemfWindow(ITEM* item) {
-    return(0x04 << A4960_getField(item)); //us DS p.29
+/*${BSP::A4960::Run::ConvBemfWindow} .......................................*/
+static uint16_t ConvBemfWindow(FIELD* field) {
+    return(0x04 << getField(field)); //us DS p.29
 }
 //Brake - get
 //Direction - get
 //Run - get
 
 
-ITEM const A4960_FixedOffTime =
-    {"Fixed Off Time", "us", 1U, A4960_CONF2_RD, 0x001f,
-        &A4960_getField, &A4960_setField, &A4960_ConvFixedOffTime};
+FIELD const FixedOffTime =
+    {"Fixed Off Time",us, 1U, A4960_CONF2_RD, 0x001f,
+        &ConvFixedOffTime};
 
-ITEM const A4960_PhaseAdvance =
+FIELD const PhaseAdvance =
     {"Phase Advance","deg(e)", 3U, A4960_CONF5_RD, 0x0c00,
-        &A4960_getField, &A4960_setField, &A4960_ConvPhaseAdvance};
+        &ConvPhaseAdvance};
 
-ITEM const A4960_BemfHyst =
+FIELD const BemfHyst =
     {"BEMF Hysteresis","0 - Auto, 1 - None, 2 - High, 3 - Low", 0U, A4960_RUN_RD, 0x0c00,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+        &getField};
 
-ITEM const A4960_BemfWindow =
-    {"BEMF Window","us", 0U, A4960_RUN_RD, 0x0380,
-        &A4960_getField, &A4960_setField, &A4960_ConvBemfWindow};
+FIELD const BemfWindow =
+    {"BEMF Window",us, 0U, A4960_RUN_RD, 0x0380,
+        &ConvBemfWindow};
 
-ITEM const A4960_Brake =
+FIELD const Brake =
     {"Brake","0 - Off, 1 - On", 0U, A4960_RUN_RD, 0x0004,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+        &getField};
 
-ITEM const A4960_Direction =
+FIELD const Direction =
     {"Direction","0 - Fwd, 1 - Rev", 0U, A4960_RUN_RD, 0x0002,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+        &getField};
 
-ITEM const A4960_Run =
+FIELD const Run =
     {"Run","0 - Coast, 1 - Run", 0U, A4960_RUN_RD, 0x0001,
-        &A4960_getField, &A4960_setField, &A4960_getField};
-
-
-
-
+        &getField};
 
 #ifdef UNDEF
 
@@ -530,19 +524,10 @@ ITEM const A4960_VdsThreshold =
 /* ----------------------------- */
 
 //- Run
-/*${BSP::A4960::Run::A4960_ConvFixedO~} ....................................*/
-static uint16_t A4960_ConvFixedOffTime(ITEM* item) {
-    return(10+(A4960_getField(item)*16U));
-}
-/*${BSP::A4960::Run::A4960_ConvPhaseA~} ....................................*/
-static uint16_t A4960_ConvPhaseAdvance(ITEM* item) {
-    return(A4960_getField(item)*1875U); //deg(e), DS p.28
-}
+//$define(BSP::A4960::Run::A4960_ConvFixedOffTime)
+//$define(BSP::A4960::Run::A4960_ConvPhaseAdvance)
 //BemfHyst - get
-/*${BSP::A4960::Run::A4960_ConvBemfWi~} ....................................*/
-static uint16_t A4960_ConvBemfWindow(ITEM* item) {
-    return(0x04 << A4960_getField(item)); //us DS p.29
-}
+//$define(BSP::A4960::Run::A4960_ConvBemfWindow)
 //Brake - get
 //Direction - get
 //Run - get

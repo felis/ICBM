@@ -323,21 +323,34 @@ QMSM_DISPATCH((QMsm*)&amp;me-&gt;tacho);
     {&quot;FF &quot;,&quot;POR &quot;,&quot;VR &quot;,&quot;?? &quot;,&quot;TW &quot;,&quot;TS &quot;,&quot;LOS &quot;,&quot;VA &quot;,&quot;VB &quot;,
     &quot;VC &quot;,&quot;AH &quot;,&quot;AL &quot;,&quot;BH &quot;,&quot;BL &quot;,&quot;CH &quot;,&quot;CL &quot;};
 
+
 /* Status line output */
 Console_printStr(&quot;\rSpeed: &quot;);
 Console_printNum(me-&gt;rpm, 10, 0U);
 
 //run flags
 Console_printStr(&quot; [ &quot;);
-if(A4960_Run.get((struct item_t*)&amp;A4960_Run)) {    //run flag up
-    Console_printStr(&quot;RUN &quot;);
+
+//if(A4960_Run.get((struct item_t*)&amp;A4960_Run)) {    //run flag up
+//    Console_printStr(&quot;RUN &quot;);
+//}
+//if(A4960_Brake.get((struct item_t*)&amp;A4960_Brake)) {    //brake flag up
+//    Console_printStr(&quot;BRK &quot;);
+//}
+//if(A4960_Direction.get((struct item_t*)&amp;A4960_Direction)) {//dir flag up
+//    Console_printStr(&quot;DIR &quot;);
+//}
+
+if(getField((struct field_t*)&amp;Run)) {    //run flag up
+   Console_printStr(&quot;RUN &quot;);
 }
-if(A4960_Brake.get((struct item_t*)&amp;A4960_Brake)) {    //brake flag up
+if(getField((struct field_t*)&amp;Brake)) {    //brake flag up
     Console_printStr(&quot;BRK &quot;);
 }
-if(A4960_Direction.get((struct item_t*)&amp;A4960_Direction)) {//dir flag up
+if(getField((struct field_t*)&amp;Direction)) {//dir flag up
     Console_printStr(&quot;DIR &quot;);
 }
+
 Console_printStr(&quot;]&quot;);
 
 //diagnostic flags
@@ -363,7 +376,10 @@ QActive_armX(&amp;me-&gt;super, 0U, STAT_TOUT);</action>
      <tran trig="RBUT_PRESS">
       <action>Console_printStr(&quot;\r\n\r\nRun Button Pressed\r\n&quot;);
 
-A4960_Run.set(1, (struct item_t*)&amp;A4960_Run);
+//A4960_Run.set(1, (struct item_t*)&amp;A4960_Run);
+
+setField(1, (struct field_t*)&amp;Run);
+
 
 //A4960_Run-&gt;name
 
@@ -578,7 +594,8 @@ Console_handleMenuItems
      </state>
      <state name="Run">
       <documentation>Manipulating run parameters</documentation>
-      <entry>Console_printItems(me, (ITEM**)runItems, RUN_CNT);</entry>
+      <entry>//Console_printItems(me, (ITEM**)runItems, RUN_CNT);
+Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -588,8 +605,8 @@ Console_handleMenuItems
        </choice>
        <choice target="../..">
         <guard>else</guard>
-        <action>Console_handleItems
-    (me, (uint8_t)Q_PAR(me), (ITEM**)runItems, RUN_CNT);</action>
+        <action>Console_handleMenuItems
+    (me, (uint8_t)Q_PAR(me), (FIELD**)runFields, RUN_CNT);</action>
         <choice_glyph conn="58,57,4,3,3,-8">
          <action box="-6,1,4,2"/>
         </choice_glyph>
@@ -1128,32 +1145,6 @@ return(A4960_xfer(field-&gt;reg + 1, tmpdata));//write</code>
     </operation>
    </package>
    <package name="Limits" stereotype="0x02">
-    <operation name="A4960_ConvCommBlankTime" type="uint16_t" visibility="0x02" properties="0x00">
-     <documentation>Communication Blank Time converter</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>const uint16_t const blanktimes[] = {50U,100U,400U,1000U};
-
-uint8_t tmpdata = A4960_getField(item);
-
-return(blanktimes[tmpdata]);</code>
-    </operation>
-    <operation name="A4960_ConvBlankTime" type="uint16_t" visibility="0x02" properties="0x00">
-     <documentation>returns value of Blank Time</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return(400U*A4960_getField(item));</code>
-    </operation>
-    <operation name="A4960_ConvDeadTime" type="uint16_t" visibility="0x02" properties="0x00">
-     <documentation>returns value of Config 0 DT field AKA Dead Time. DS p.26</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>uint16_t tmpdata = A4960_getField(item);
-
-return((tmpdata &lt; 3) ? 100U : tmpdata*50U);</code>
-    </operation>
-    <operation name="A4960_ConvVdsThreshold" type="uint16_t" visibility="0x02" properties="0x00">
-     <documentation>returns value of Vds Threshold</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return(25U*A4960_getField(item));</code>
-    </operation>
     <operation name="ConvCommBlankTime" type="uint16_t" visibility="0x02" properties="0x00">
      <documentation>Communication Blank Time converter</documentation>
      <parameter name="field" type="FIELD*"/>
@@ -1182,20 +1173,20 @@ return((tmpdata &lt; 3) ? 100U : tmpdata*50U);</code>
     </operation>
    </package>
    <package name="Run" stereotype="0x02">
-    <operation name="A4960_ConvFixedOffTime" type="uint16_t" visibility="0x02" properties="0x00">
+    <operation name="ConvFixedOffTime" type="uint16_t" visibility="0x02" properties="0x00">
      <documentation>returns value of Commutation Blank Time,DS p.27</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return(10+(A4960_getField(item)*16U));</code>
+     <parameter name="field" type="FIELD*"/>
+     <code>return(10+(getField(field)*16U));</code>
     </operation>
-    <operation name="A4960_ConvPhaseAdvance" type="uint16_t" visibility="0x02" properties="0x00">
+    <operation name="ConvPhaseAdvance" type="uint16_t" visibility="0x02" properties="0x00">
      <documentation>returns value of Phase Advance, x1000</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return(A4960_getField(item)*1875U); //deg(e), DS p.28</code>
+     <parameter name="field" type="FIELD*"/>
+     <code>return(getField(field)*1875U); //deg(e), DS p.28</code>
     </operation>
-    <operation name="A4960_ConvBemfWindow" type="uint16_t" visibility="0x02" properties="0x00">
+    <operation name="ConvBemfWindow" type="uint16_t" visibility="0x02" properties="0x00">
      <documentation>returns value of BEMF Window, x10</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return(0x04 &lt;&lt; A4960_getField(item)); //us DS p.29</code>
+     <parameter name="field" type="FIELD*"/>
+     <code>return(0x04 &lt;&lt; getField(field)); //us DS p.29</code>
     </operation>
    </package>
    <package name="Startup" stereotype="0x02">
@@ -1821,8 +1812,6 @@ unit - what is printed after the value
 point - decimal point
 reg - register containing the item
 mask - bitmask of an item inside the register
-get - function to get contents --&gt;redundant?
-set - function to set contents --&gt;same as above
 conv - function to convert contents to value
 */
 
@@ -1847,46 +1836,42 @@ FIELD const VdsThreshold =
         &amp;ConvVdsThreshold};
 
 //- Run
-$define(BSP::A4960::Run::A4960_ConvFixedOffTime)
-$define(BSP::A4960::Run::A4960_ConvPhaseAdvance)
+$define(BSP::A4960::Run::ConvFixedOffTime)
+$define(BSP::A4960::Run::ConvPhaseAdvance)
 //BemfHyst - get
-$define(BSP::A4960::Run::A4960_ConvBemfWindow)
+$define(BSP::A4960::Run::ConvBemfWindow)
 //Brake - get
 //Direction - get
 //Run - get
 
 
-ITEM const A4960_FixedOffTime = 
-    {&quot;Fixed Off Time&quot;, &quot;us&quot;, 1U, A4960_CONF2_RD, 0x001f,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvFixedOffTime};
+FIELD const FixedOffTime = 
+    {&quot;Fixed Off Time&quot;,us, 1U, A4960_CONF2_RD, 0x001f,
+        &amp;ConvFixedOffTime};
 
-ITEM const A4960_PhaseAdvance = 
+FIELD const PhaseAdvance = 
     {&quot;Phase Advance&quot;,&quot;deg(e)&quot;, 3U, A4960_CONF5_RD, 0x0c00,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvPhaseAdvance};
+        &amp;ConvPhaseAdvance};
 
-ITEM const A4960_BemfHyst = 
+FIELD const BemfHyst = 
     {&quot;BEMF Hysteresis&quot;,&quot;0 - Auto, 1 - None, 2 - High, 3 - Low&quot;, 0U, A4960_RUN_RD, 0x0c00,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+        &amp;getField};
 
-ITEM const A4960_BemfWindow = 
-    {&quot;BEMF Window&quot;,&quot;us&quot;, 0U, A4960_RUN_RD, 0x0380,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvBemfWindow};
+FIELD const BemfWindow = 
+    {&quot;BEMF Window&quot;,us, 0U, A4960_RUN_RD, 0x0380,
+        &amp;ConvBemfWindow};
 
-ITEM const A4960_Brake = 
+FIELD const Brake = 
     {&quot;Brake&quot;,&quot;0 - Off, 1 - On&quot;, 0U, A4960_RUN_RD, 0x0004,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+        &amp;getField};
 
-ITEM const A4960_Direction = 
+FIELD const Direction = 
     {&quot;Direction&quot;,&quot;0 - Fwd, 1 - Rev&quot;, 0U, A4960_RUN_RD, 0x0002,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+        &amp;getField};
 
-ITEM const A4960_Run = 
+FIELD const Run = 
     {&quot;Run&quot;,&quot;0 - Coast, 1 - Run&quot;, 0U, A4960_RUN_RD, 0x0001,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
-
-
-
-
+        &amp;getField};
 
 #ifdef UNDEF
 
@@ -1915,10 +1900,10 @@ ITEM const A4960_VdsThreshold =
 /* ----------------------------- */
 
 //- Run
-$define(BSP::A4960::Run::A4960_ConvFixedOffTime)
-$define(BSP::A4960::Run::A4960_ConvPhaseAdvance)
+//$define(BSP::A4960::Run::A4960_ConvFixedOffTime)
+//$define(BSP::A4960::Run::A4960_ConvPhaseAdvance)
 //BemfHyst - get
-$define(BSP::A4960::Run::A4960_ConvBemfWindow)
+//$define(BSP::A4960::Run::A4960_ConvBemfWindow)
 //Brake - get
 //Direction - get
 //Run - get
@@ -2134,6 +2119,8 @@ extern FIELD const DeadTime;
 extern FIELD const CurrentSenseRefRatio;
 extern FIELD const VdsThreshold;
 
+#ifdef UNDEF
+
 //- Access to 'Limits' fields
 extern ITEM const A4960_CommBlankTime;
 extern ITEM const A4960_BlankTime;
@@ -2141,14 +2128,16 @@ extern ITEM const A4960_DeadTime;
 extern ITEM const A4960_CurrentSenseRefRatio;
 extern ITEM const A4960_VdsThreshold;
 
+#endif
+
 //- Access to 'Run' fields
-extern ITEM const A4960_FixedOffTime;
-extern ITEM const A4960_PhaseAdvance;
-extern ITEM const A4960_BemfHyst;
-extern ITEM const A4960_BemfWindow;
-extern ITEM const A4960_Brake;
-extern ITEM const A4960_Direction;
-extern ITEM const A4960_Run;
+extern FIELD const FixedOffTime;
+extern FIELD const PhaseAdvance;
+extern FIELD const BemfHyst;
+extern FIELD const BemfWindow;
+extern FIELD const Brake;
+extern FIELD const Direction;
+extern FIELD const Run;
 
 //- Access to 'Startup' fields
 extern ITEM const A4960_HoldTorque;
@@ -2246,14 +2235,20 @@ const FIELD* const limitsFields[] = {&amp;CommBlankTime,&amp;BlankTime,&amp;Dead
     &amp;CurrentSenseRefRatio, &amp;VdsThreshold};
 #define LIMITS_CNT Q_DIM(limitsFields)
 
+const FIELD* const runFields[] = {&amp;FixedOffTime, &amp;PhaseAdvance, &amp;BemfHyst,
+     &amp;BemfWindow, &amp;Brake, &amp;Direction, &amp;Run};
+#define RUN_CNT Q_DIM(runFields)
 
 
 
+#ifdef UNDEF
 
 const ITEM* const runItems[] =
     {&amp;A4960_FixedOffTime, &amp;A4960_PhaseAdvance, &amp;A4960_BemfHyst,
      &amp;A4960_BemfWindow, &amp;A4960_Brake, &amp;A4960_Direction, &amp;A4960_Run};
 #define RUN_CNT Q_DIM(runItems)
+
+#endif
 
 const ITEM* const startupItems[] =
     {&amp;A4960_HoldTorque, &amp;A4960_HoldTime, &amp;A4960_EndCommTime,

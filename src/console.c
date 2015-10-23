@@ -32,6 +32,8 @@ extern FIELD const DeadTime;
 extern FIELD const CurrentSenseRefRatio;
 extern FIELD const VdsThreshold;
 
+#ifdef UNDEF
+
 //- Access to 'Limits' fields
 extern ITEM const A4960_CommBlankTime;
 extern ITEM const A4960_BlankTime;
@@ -39,14 +41,16 @@ extern ITEM const A4960_DeadTime;
 extern ITEM const A4960_CurrentSenseRefRatio;
 extern ITEM const A4960_VdsThreshold;
 
+#endif
+
 //- Access to 'Run' fields
-extern ITEM const A4960_FixedOffTime;
-extern ITEM const A4960_PhaseAdvance;
-extern ITEM const A4960_BemfHyst;
-extern ITEM const A4960_BemfWindow;
-extern ITEM const A4960_Brake;
-extern ITEM const A4960_Direction;
-extern ITEM const A4960_Run;
+extern FIELD const FixedOffTime;
+extern FIELD const PhaseAdvance;
+extern FIELD const BemfHyst;
+extern FIELD const BemfWindow;
+extern FIELD const Brake;
+extern FIELD const Direction;
+extern FIELD const Run;
 
 //- Access to 'Startup' fields
 extern ITEM const A4960_HoldTorque;
@@ -144,14 +148,20 @@ const FIELD* const limitsFields[] = {&CommBlankTime,&BlankTime,&DeadTime,
     &CurrentSenseRefRatio, &VdsThreshold};
 #define LIMITS_CNT Q_DIM(limitsFields)
 
+const FIELD* const runFields[] = {&FixedOffTime, &PhaseAdvance, &BemfHyst,
+     &BemfWindow, &Brake, &Direction, &Run};
+#define RUN_CNT Q_DIM(runFields)
 
 
 
+#ifdef UNDEF
 
 const ITEM* const runItems[] =
     {&A4960_FixedOffTime, &A4960_PhaseAdvance, &A4960_BemfHyst,
      &A4960_BemfWindow, &A4960_Brake, &A4960_Direction, &A4960_Run};
 #define RUN_CNT Q_DIM(runItems)
+
+#endif
 
 const ITEM* const startupItems[] =
     {&A4960_HoldTorque, &A4960_HoldTime, &A4960_EndCommTime,
@@ -733,21 +743,34 @@ static QState Console_Session(Console * const me) {
                 {"FF ","POR ","VR ","?? ","TW ","TS ","LOS ","VA ","VB ",
                 "VC ","AH ","AL ","BH ","BL ","CH ","CL "};
 
+
             /* Status line output */
             Console_printStr("\rSpeed: ");
             Console_printNum(me->rpm, 10, 0U);
 
             //run flags
             Console_printStr(" [ ");
-            if(A4960_Run.get((struct item_t*)&A4960_Run)) {    //run flag up
-                Console_printStr("RUN ");
+
+            //if(A4960_Run.get((struct item_t*)&A4960_Run)) {    //run flag up
+            //    Console_printStr("RUN ");
+            //}
+            //if(A4960_Brake.get((struct item_t*)&A4960_Brake)) {    //brake flag up
+            //    Console_printStr("BRK ");
+            //}
+            //if(A4960_Direction.get((struct item_t*)&A4960_Direction)) {//dir flag up
+            //    Console_printStr("DIR ");
+            //}
+
+            if(getField((struct field_t*)&Run)) {    //run flag up
+               Console_printStr("RUN ");
             }
-            if(A4960_Brake.get((struct item_t*)&A4960_Brake)) {    //brake flag up
+            if(getField((struct field_t*)&Brake)) {    //brake flag up
                 Console_printStr("BRK ");
             }
-            if(A4960_Direction.get((struct item_t*)&A4960_Direction)) {//dir flag up
+            if(getField((struct field_t*)&Direction)) {//dir flag up
                 Console_printStr("DIR ");
             }
+
             Console_printStr("]");
 
             //diagnostic flags
@@ -773,7 +796,10 @@ static QState Console_Session(Console * const me) {
         case RBUT_PRESS_SIG: {
             Console_printStr("\r\n\r\nRun Button Pressed\r\n");
 
-            A4960_Run.set(1, (struct item_t*)&A4960_Run);
+            //A4960_Run.set(1, (struct item_t*)&A4960_Run);
+
+            setField(1, (struct field_t*)&Run);
+
 
             //A4960_Run->name
 
@@ -1223,7 +1249,8 @@ static QState Console_Limits(Console * const me) {
 /*${AOs::Console::SM::Session::Run} ........................................*/
 /* ${AOs::Console::SM::Session::Run} */
 static QState Console_Run_e(Console * const me) {
-    Console_printItems(me, (ITEM**)runItems, RUN_CNT);
+    //Console_printItems(me, (ITEM**)runItems, RUN_CNT);
+    Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);
     return QM_ENTRY(&Console_Run_s);
 }
 /* ${AOs::Console::SM::Session::Run} */
@@ -1258,8 +1285,8 @@ static QState Console_Run(Console * const me) {
                         Q_ACTION_CAST(0) /* zero terminator */
                     }
                 };
-                Console_handleItems
-                    (me, (uint8_t)Q_PAR(me), (ITEM**)runItems, RUN_CNT);
+                Console_handleMenuItems
+                    (me, (uint8_t)Q_PAR(me), (FIELD**)runFields, RUN_CNT);
                 status_ = QM_TRAN(&tatbl_);
             }
             break;
