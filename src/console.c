@@ -53,32 +53,32 @@ extern FIELD const Direction;
 extern FIELD const Run;
 
 //- Access to 'Startup' fields
-extern ITEM const A4960_HoldTorque;
-extern ITEM const A4960_HoldTime;
-extern ITEM const A4960_EndCommTime;
-extern ITEM const A4960_StartCommTime;
-extern ITEM const A4960_ForcedCommTorque;
-extern ITEM const A4960_RampRate;
+extern FIELD const HoldTorque;
+extern FIELD const HoldTime;
+extern FIELD const EndCommTime;
+extern FIELD const StartCommTime;
+extern FIELD const ForcedCommTorque;
+extern FIELD const RampRate;
 
 //- Access to 'Flags' fields
-extern ITEM const A4960_VaFlag;
-extern ITEM const A4960_VbFlag;
-extern ITEM const A4960_VcFlag;
-extern ITEM const A4960_AhFlag;
-extern ITEM const A4960_AlFlag;
-extern ITEM const A4960_BhFlag;
-extern ITEM const A4960_BlFlag;
-extern ITEM const A4960_ChFlag;
-extern ITEM const A4960_ClFlag;
+extern FIELD const VaFlag;
+extern FIELD const VbFlag;
+extern FIELD const VcFlag;
+extern FIELD const AhFlag;
+extern FIELD const AlFlag;
+extern FIELD const BhFlag;
+extern FIELD const BlFlag;
+extern FIELD const ChFlag;
+extern FIELD const ClFlag;
 
 //- Access to 'Misc' fields
-extern ITEM const A4960_TorqueCtlMethod;
-extern ITEM const A4960_EnableStopOnFail;
-extern ITEM const A4960_DiagOutput;
-extern ITEM const A4960_RestartControl;
-extern ITEM const A4960_TwFlag;
-extern ITEM const A4960_TsFlag;
-extern ITEM const A4960_LosFlag;
+extern FIELD const TorqueCtlMethod;
+extern FIELD const EnableStopOnFail;
+extern FIELD const DiagOutput;
+extern FIELD const RestartControl;
+extern FIELD const TwFlag;
+extern FIELD const TsFlag;
+extern FIELD const LosFlag;
 
 //- Access to PWM
 extern ITEM const PWM_Freq;
@@ -101,24 +101,14 @@ extern ITEM const PWM_Duty;
 
 /* Variables */
 //Serial console
-//__pack_upper_byte uint8_t* consoleBuf[CONSOLE_BUFSIZE];
 const char* consoleBuf[CONSOLE_BUFSIZE];
 uint8_t consoleHead;
 volatile uint8_t consoleTail;    //interrupt changes this
 
-
-
 static const char* const crlf = "\r\n";
-
 static const char* const space = " ";
 
 /*-- Main Menu */
-//const char* mSetup[] = {"Setup"};
-
-//static const char* const mSetup = "Setup";
-//const char* const mMess = "Mess";
-//const char* const mTune = "Tune";
-
 const char* menuMain[] =
     { "Setup", "Mess", "Tune" };
 #define MENU_MAIN_CNT Q_DIM(menuMain)
@@ -135,14 +125,8 @@ const ITEM* const uiItems[] = {};
 #define UI_CNT Q_DIM(uiItems)
 
 /*- Mess Menu and accompanying menu item arrays */
-
-
 const char* const menuMess[] = {"Limits","Run","Startup","Flags","Misc"};
 #define MENU_MESS_CNT Q_DIM(menuMess)
-
-//const ITEM* const limitsItems[] = {&A4960_CommBlankTime, &A4960_BlankTime,
-//    &A4960_DeadTime, &A4960_CurrentSenseRefRatio, &A4960_VdsThreshold};
-//#define LIMITS_CNT Q_DIM(limitsItems)
 
 const FIELD* const limitsFields[] = {&CommBlankTime,&BlankTime,&DeadTime,
     &CurrentSenseRefRatio, &VdsThreshold};
@@ -163,21 +147,21 @@ const ITEM* const runItems[] =
 
 #endif
 
-const ITEM* const startupItems[] =
-    {&A4960_HoldTorque, &A4960_HoldTime, &A4960_EndCommTime,
-     &A4960_StartCommTime, &A4960_ForcedCommTorque, &A4960_RampRate};
-#define STARTUP_CNT Q_DIM(startupItems)
+const FIELD* const startupFields[] =
+    {&HoldTorque, &HoldTime, &EndCommTime,
+     &StartCommTime, &ForcedCommTorque, &RampRate};
+#define STARTUP_CNT Q_DIM(startupFields)
 
-const ITEM* const flagsItems[] =
-    {&A4960_VaFlag, &A4960_VbFlag, &A4960_VcFlag, &A4960_AhFlag,
-     &A4960_AlFlag, &A4960_BhFlag, &A4960_BlFlag, &A4960_ChFlag,
-     &A4960_ClFlag};
-#define FLAGS_CNT Q_DIM(flagsItems)
+const FIELD* const flagsFields[] =
+    {&VaFlag, &VbFlag, &VcFlag, &AhFlag,
+     &AlFlag, &BhFlag, &BlFlag, &ChFlag,
+     &ClFlag};
+#define FLAGS_CNT Q_DIM(flagsFields)
 
-const ITEM* const miscItems[] =
-    {&A4960_TorqueCtlMethod, &A4960_EnableStopOnFail, &A4960_DiagOutput,
-     &A4960_RestartControl, &A4960_TwFlag, &A4960_TsFlag, &A4960_LosFlag};
-#define MISC_CNT Q_DIM(miscItems)
+const FIELD* const miscFields[] =
+    {&TorqueCtlMethod, &EnableStopOnFail, &DiagOutput,
+     &RestartControl, &TwFlag, &TsFlag, &LosFlag};
+#define MISC_CNT Q_DIM(miscFields)
 
 const char* const menuTune[]={"Tune","Tune"};
 #define MENU_TUNE_CNT Q_DIM(menuTune)
@@ -234,12 +218,6 @@ static void Console_printNum(
     uint8_t point);
 static void Console_printWhirlingStar(void);
 static void Console_printMenuTitle(uint8_t count, const char* const* menu);
-static void Console_printItems(Console * const me, ITEM** item, uint8_t cnt);
-static void Console_handleItems(
-    Console * const me,
-    uint8_t key,
-    ITEM** item,
-    uint8_t cnt);
 static void Console_Tacho_ctor(Tacho* const me);
 static void Console_printMenuItems(Console * const me, FIELD** field, uint8_t cnt);
 static void Console_handleMenuItems(
@@ -491,81 +469,6 @@ static void Console_printMenuTitle(uint8_t count, const char* const* menu) {
 
     Console_printStr(crlf);
 }
-/*${AOs::Console::printItems} ..............................................*/
-static void Console_printItems(Console * const me, ITEM** item, uint8_t cnt) {
-    uint8_t i;
-
-    Console_printStr("\r\nPress number to select field,");
-    Console_printStr("\r\nthen w,a,s,d to change it");
-    Console_printStr("\r\n\n0. Back");
-
-    Console_printStr(crlf);
-
-    for(i = 0; i < cnt; i++) {
-        if(i+1 == me->menuselect) {    //highlight
-            Console_printStr(">>> ");
-        } else {
-            Console_printNum(i + 1,10,0U);
-            Console_printStr(". ");
-        }
-
-        Console_printStr(item[i]->name);    //field name
-
-        Console_printStr(" [");
-        Console_printNum(item[i]->get(&(*item[i])), 2, 0U); //field contents
-        Console_printStr("], ");
-
-        Console_printNum(item[i]->conv(&(*item[i])), 10, item[i]->point);//field value
-
-        Console_printStr(space);
-        Console_printStr(item[i]->unit);        //field unit
-        Console_printStr(crlf);
-    }
-    Console_printStr(crlf);
-}
-/*${AOs::Console::handleItems} .............................................*/
-static void Console_handleItems(
-    Console * const me,
-    uint8_t key,
-    ITEM** item,
-    uint8_t cnt)
-{
-    uint8_t tmpdata = atoi((const char*)&key);
-
-    if(isdigit(key)) {    //numeric
-        if(tmpdata > cnt) {
-            return;    //wrong key, do not handle
-        }
-        else {
-            me->menuselect = tmpdata;    //remember selection
-            return;
-        }
-    }
-
-    if(me->menuselect == 0) {
-        return;    //no further processing necessary
-    }
-
-    tmpdata =
-        item[me->menuselect-1]->get(&(*item[me->menuselect-1]));
-
-    if(key == 'w' || key == 'W') {    //increment
-        tmpdata++;
-    }
-
-    if(key == 's' || key == 'S') { //decrement
-        tmpdata--;
-    }
-
-    uint16_t tmplen = item[me->menuselect-1]->mask;
-
-    while((tmplen & 0x01) == 0 ) { //LSB eq zero
-        tmplen >>= 1;
-    }
-
-    tmpdata &= tmplen;
-    item[me->menuselect-1]->set(tmpdata,&(*item[me->menuselect-1]));
-}
 /*${AOs::Console::Tacho_ctor} ..............................................*/
 static void Console_Tacho_ctor(Tacho* const me) {
     QMsm_ctor(&me->super, Q_STATE_CAST(&Tacho_initial));
@@ -698,15 +601,14 @@ static QState Console_Session(Console * const me) {
         case FF_SIG: {
             //Fault reported
 
-            uint8_t i =
-                A4960_TwFlag.get((struct item_t*)&A4960_TwFlag);
+            //uint8_t i =
+            //    A4960_TwFlag.get((struct item_t*)&A4960_TwFlag);
 
-            me->diag =
-                A4960_TwFlag.set(i, (struct item_t*)&A4960_TwFlag);
+            //me->diag =
+            //    A4960_TwFlag.set(i, (struct item_t*)&A4960_TwFlag);
 
-
-
-
+            uint8_t i = getField((struct field_t*)&TwFlag);
+            me->diag = setField(i, (struct field_t*)&TwFlag);
 
             Console_printStr("\r\nA4960 fault");
             status_ = QM_HANDLED();
@@ -1249,7 +1151,6 @@ static QState Console_Limits(Console * const me) {
 /*${AOs::Console::SM::Session::Run} ........................................*/
 /* ${AOs::Console::SM::Session::Run} */
 static QState Console_Run_e(Console * const me) {
-    //Console_printItems(me, (ITEM**)runItems, RUN_CNT);
     Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);
     return QM_ENTRY(&Console_Run_s);
 }
@@ -1301,8 +1202,8 @@ static QState Console_Run(Console * const me) {
 /*${AOs::Console::SM::Session::Startup} ....................................*/
 /* ${AOs::Console::SM::Session::Startup} */
 static QState Console_Startup_e(Console * const me) {
-    Console_printItems
-        (me, (ITEM**)startupItems, STARTUP_CNT);
+    Console_printMenuItems
+        (me, (FIELD**)startupFields, STARTUP_CNT);
     return QM_ENTRY(&Console_Startup_s);
 }
 /* ${AOs::Console::SM::Session::Startup} */
@@ -1337,8 +1238,8 @@ static QState Console_Startup(Console * const me) {
                         Q_ACTION_CAST(0) /* zero terminator */
                     }
                 };
-                Console_handleItems
-                    (me, (uint8_t)Q_PAR(me), (ITEM**)startupItems,
+                Console_handleMenuItems
+                    (me, (uint8_t)Q_PAR(me), (FIELD**)startupFields,
                     STARTUP_CNT);
                 status_ = QM_TRAN(&tatbl_);
             }
@@ -1354,8 +1255,9 @@ static QState Console_Startup(Console * const me) {
 /*${AOs::Console::SM::Session::Misc} .......................................*/
 /* ${AOs::Console::SM::Session::Misc} */
 static QState Console_Misc_e(Console * const me) {
-    Console_printItems
-        (me, (ITEM**)miscItems, MISC_CNT);
+    Console_printMenuItems
+        (me,(FIELD**)miscFields, MISC_CNT);
+
     return QM_ENTRY(&Console_Misc_s);
 }
 /* ${AOs::Console::SM::Session::Misc} */
@@ -1390,8 +1292,8 @@ static QState Console_Misc(Console * const me) {
                         Q_ACTION_CAST(0) /* zero terminator */
                     }
                 };
-                Console_handleItems
-                    (me, (uint8_t)Q_PAR(me), (ITEM**)miscItems,
+                Console_handleMenuItems
+                    (me, (uint8_t)Q_PAR(me), (FIELD**)miscFields,
                     MISC_CNT);
                 status_ = QM_TRAN(&tatbl_);
             }
@@ -1409,8 +1311,8 @@ static QState Console_Misc(Console * const me) {
 static QState Console_Flags_e(Console * const me) {
     Console_printStr("\r\nUse 'Misc' menu for non-bridge related faults");
 
-    Console_printItems
-        (me, (ITEM**)flagsItems, FLAGS_CNT);
+    Console_printMenuItems
+        (me, (FIELD**)flagsFields, FLAGS_CNT);
     return QM_ENTRY(&Console_Flags_s);
 }
 /* ${AOs::Console::SM::Session::Flags} */
@@ -1445,9 +1347,9 @@ static QState Console_Flags(Console * const me) {
                         Q_ACTION_CAST(0) /* zero terminator */
                     }
                 };
-                Console_handleItems
-                    (me, (uint8_t)Q_PAR(me), (ITEM**)flagsItems,
-                    MISC_CNT);
+                Console_handleMenuItems
+                    (me, (uint8_t)Q_PAR(me), (FIELD**)flagsFields,
+                    FLAGS_CNT);
                 status_ = QM_TRAN(&tatbl_);
             }
             break;
@@ -1462,7 +1364,7 @@ static QState Console_Flags(Console * const me) {
 /*${AOs::Console::SM::Session::Control} ....................................*/
 /* ${AOs::Console::SM::Session::Control} */
 static QState Console_Control_e(Console * const me) {
-    Console_printItems(me, (ITEM**)controlItems, CONTROL_CNT);
+    //Console_printItems(me, (ITEM**)controlItems, CONTROL_CNT);
     return QM_ENTRY(&Console_Control_s);
 }
 /* ${AOs::Console::SM::Session::Control} */
@@ -1497,8 +1399,8 @@ static QState Console_Control(Console * const me) {
                         Q_ACTION_CAST(0) /* zero terminator */
                     }
                 };
-                Console_handleItems
-                    (me,(uint8_t)Q_PAR(me),(ITEM**)controlItems, CONTROL_CNT);
+                //Console_handleItems
+                //    (me,(uint8_t)Q_PAR(me),(ITEM**)controlItems, CONTROL_CNT);
                 status_ = QM_TRAN(&tatbl_);
             }
             break;
@@ -1513,7 +1415,7 @@ static QState Console_Control(Console * const me) {
 /*${AOs::Console::SM::Session::UI} .........................................*/
 /* ${AOs::Console::SM::Session::UI} */
 static QState Console_UI_e(Console * const me) {
-    Console_printItems(me, (ITEM**)uiItems, UI_CNT);
+    //Console_printItems(me, (ITEM**)uiItems, UI_CNT);
     return QM_ENTRY(&Console_UI_s);
 }
 /* ${AOs::Console::SM::Session::UI} */
@@ -1548,8 +1450,8 @@ static QState Console_UI(Console * const me) {
                         Q_ACTION_CAST(0) /* zero terminator */
                     }
                 };
-                Console_handleItems
-                    (me,(uint8_t)Q_PAR(me),(ITEM**)uiItems, UI_CNT);
+                //Console_handleItems
+                //    (me,(uint8_t)Q_PAR(me),(ITEM**)uiItems, UI_CNT);
                 status_ = QM_TRAN(&tatbl_);
             }
             break;

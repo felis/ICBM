@@ -24,6 +24,7 @@
 //1.console on UART1
 //SPI1
 //CS on pin 25
+//ICD on different pins
 
 /* PIC24FV16KM202-specific */
 
@@ -132,7 +133,7 @@ volatile uint8_t heeq_Tail;    //interrupt changes this
 
 //- Const
 
-//Enable-disable message
+//Enable-disable messages
 const char const zen[] = "\x08\x08\x08 0 - Enable, 1- Disable";
 
 //Common units
@@ -324,37 +325,6 @@ static uint16_t A4960_xfer(uint8_t reg, uint16_t data) {
 
     return tmpdata;
 }
-/*${BSP::A4960::Common::A4960_getField} ....................................*/
-static uint16_t A4960_getField(ITEM* item) {
-    uint16_t tmpdata = A4960_xfer(item->reg,0U);
-    uint16_t tmpmask = item->mask;
-
-    tmpdata &= tmpmask;    //clear the rest
-
-    while((tmpmask & 0x01) == 0) {    //LSB equals 0
-        tmpmask >>= 1;
-        tmpdata >>= 1;
-    };
-
-    return(tmpdata);
-}
-/*${BSP::A4960::Common::A4960_setField} ....................................*/
-static uint16_t A4960_setField(uint16_t val, ITEM* item) {
-    uint16_t tmpdata = A4960_xfer(item->reg,0U);
-    uint16_t tmpmask = item->mask;
-    uint16_t tmpval = val;
-
-    tmpdata &= ~tmpmask; //clear the field position
-
-    while((tmpmask & 0x1) == 0) { //LSB equals 0
-        tmpmask >>= 1;
-        tmpval <<= 1;
-    }
-
-    tmpdata |= tmpval;            //insert field
-
-    return(A4960_xfer(item->reg + 1, tmpdata));//write
-}
 /*${BSP::A4960::Common::getField} ..........................................*/
 uint16_t getField(FIELD* field) {
     uint16_t tmpdata = A4960_xfer(field->reg,0U);
@@ -387,10 +357,6 @@ uint16_t setField(uint16_t val, FIELD* field) {
     return(A4960_xfer(field->reg + 1, tmpdata));//write
 }
 
-/*${BSP::A4960::Common::A4960_convPercen~} .................................*/
-static uint16_t A4960_convPercent(ITEM* item) {
-    return((A4960_getField(item) + 1)*625U);
-}
 /*${BSP::A4960::Common::convPercent} .......................................*/
 static uint16_t convPercent(FIELD* field) {
     return((getField(field) + 1)*625U);
@@ -470,210 +436,122 @@ static uint16_t ConvBemfWindow(FIELD* field) {
 
 
 FIELD const FixedOffTime =
-    {"Fixed Off Time",us, 1U, A4960_CONF2_RD, 0x001f,
-        &ConvFixedOffTime};
+    {"Fixed Off Time",us, 1U, A4960_CONF2_RD, 0x001f, &ConvFixedOffTime};
 
 FIELD const PhaseAdvance =
-    {"Phase Advance","deg(e)", 3U, A4960_CONF5_RD, 0x0c00,
-        &ConvPhaseAdvance};
+    {"Phase Advance","deg(e)", 3U, A4960_CONF5_RD, 0x0c00, &ConvPhaseAdvance};
 
 FIELD const BemfHyst =
     {"BEMF Hysteresis","0 - Auto, 1 - None, 2 - High, 3 - Low", 0U, A4960_RUN_RD, 0x0c00,
         &getField};
 
 FIELD const BemfWindow =
-    {"BEMF Window",us, 0U, A4960_RUN_RD, 0x0380,
-        &ConvBemfWindow};
+    {"BEMF Window",us, 0U, A4960_RUN_RD, 0x0380, &ConvBemfWindow};
 
 FIELD const Brake =
-    {"Brake","0 - Off, 1 - On", 0U, A4960_RUN_RD, 0x0004,
-        &getField};
+    {"Brake","0 - Off, 1 - On", 0U, A4960_RUN_RD, 0x0004, &getField};
 
 FIELD const Direction =
-    {"Direction","0 - Fwd, 1 - Rev", 0U, A4960_RUN_RD, 0x0002,
-        &getField};
+    {"Direction","0 - Fwd, 1 - Rev", 0U, A4960_RUN_RD, 0x0002, &getField};
 
 FIELD const Run =
-    {"Run","0 - Coast, 1 - Run", 0U, A4960_RUN_RD, 0x0001,
-        &getField};
+    {"Run","0 - Coast, 1 - Run", 0U, A4960_RUN_RD, 0x0001, &getField};
 
-#ifdef UNDEF
-
-ITEM const A4960_CommBlankTime =
-    {"Comm. Blank Time", zen/*"ns"*/, 0U, A4960_CONF0_RD, 0x0c00,
-        &A4960_getField, &A4960_setField, &A4960_ConvCommBlankTime};
-
-ITEM const A4960_BlankTime =
-    {"Blank Time","us", 3U, A4960_CONF0_RD, 0x03c0,
-        &A4960_getField, &A4960_setField, &A4960_ConvBlankTime};
-
-ITEM const A4960_DeadTime =
-    {"Dead Time","ns", 0U, A4960_CONF0_RD, 0x003f,
-        &A4960_getField, &A4960_setField, &A4960_ConvDeadTime};
-
-ITEM const A4960_CurrentSenseRefRatio =
-    {"Current Sense","%", 2U, A4960_CONF1_RD, 0x03c0,
-        &A4960_getField, &A4960_setField, &A4960_convPercent};
-
-ITEM const A4960_VdsThreshold =
-    {"VDS Threshold","mV", 0U, A4960_CONF1_RD, 0x003f,
-        &A4960_getField, &A4960_setField, &A4960_ConvVdsThreshold};
-
-
-
-/* ----------------------------- */
-
-//- Run
-//$define(BSP::A4960::Run::A4960_ConvFixedOffTime)
-//$define(BSP::A4960::Run::A4960_ConvPhaseAdvance)
-//BemfHyst - get
-//$define(BSP::A4960::Run::A4960_ConvBemfWindow)
-//Brake - get
-//Direction - get
-//Run - get
-
-
-ITEM const A4960_FixedOffTime =
-    {"Fixed Off Time", "us", 1U, A4960_CONF2_RD, 0x001f,
-        &A4960_getField, &A4960_setField, &A4960_ConvFixedOffTime};
-
-ITEM const A4960_PhaseAdvance =
-    {"Phase Advance","deg(e)", 3U, A4960_CONF5_RD, 0x0c00,
-        &A4960_getField, &A4960_setField, &A4960_ConvPhaseAdvance};
-
-ITEM const A4960_BemfHyst =
-    {"BEMF Hysteresis","0 - Auto, 1 - None, 2 - High, 3 - Low", 0U, A4960_RUN_RD, 0x0c00,
-        &A4960_getField, &A4960_setField, &A4960_getField};
-
-ITEM const A4960_BemfWindow =
-    {"BEMF Window","us", 0U, A4960_RUN_RD, 0x0380,
-        &A4960_getField, &A4960_setField, &A4960_ConvBemfWindow};
-
-ITEM const A4960_Brake =
-    {"Brake","0 - Off, 1 - On", 0U, A4960_RUN_RD, 0x0004,
-        &A4960_getField, &A4960_setField, &A4960_getField};
-
-ITEM const A4960_Direction =
-    {"Direction","0 - Fwd, 1 - Rev", 0U, A4960_RUN_RD, 0x0002,
-        &A4960_getField, &A4960_setField, &A4960_getField};
-
-ITEM const A4960_Run =
-    {"Run","0 - Coast, 1 - Run", 0U, A4960_RUN_RD, 0x0001,
-        &A4960_getField, &A4960_setField, &A4960_getField};
-
-
-#endif
+//Startup
 
 //HoldTorque - percent
-/*${BSP::A4960::Startup::A4960_ConvHoldTi~} ................................*/
-static uint16_t A4960_ConvHoldTime(ITEM* item) {
-    return(A4960_getField(item)*8 + 2); //ms DS p.27
+/*${BSP::A4960::Startup::ConvHoldTime} .....................................*/
+static uint16_t ConvHoldTime(FIELD* field) {
+    return(getField(field)*8 + 2); //ms DS p.27
 }
-/*${BSP::A4960::Startup::A4960_ConvEndCom~} ................................*/
-static uint16_t A4960_ConvEndCommTime(ITEM* item) {
-    return((A4960_getField(item) + 1)*2U); //ms, DS p.28
+/*${BSP::A4960::Startup::ConvEndCommTime} ..................................*/
+static uint16_t ConvEndCommTime(FIELD* field) {
+    return((getField(field) + 1)*2U); //ms, DS p.28
 }
-/*${BSP::A4960::Startup::A4960_ConvStartC~} ................................*/
-static uint16_t A4960_ConvStartCommTime(ITEM* item) {
-    return((A4960_getField(item) + 1)*8U); //ms, DS p.28
+/*${BSP::A4960::Startup::ConvStartCommTim~} ................................*/
+static uint16_t ConvStartCommTime(FIELD* field) {
+    return((getField(field) + 1)*8U); //ms, DS p.28
 }
 //ForcedCommTorque - A_ConvPercent
-/*${BSP::A4960::Startup::A4960_ConvRampRa~} ................................*/
-static uint16_t A4960_ConvRampRate(ITEM* item) {
-    return((A4960_getField(item) + 1)*2U); //ms, DS p.28
+/*${BSP::A4960::Startup::ConvRampRate} .....................................*/
+static uint16_t ConvRampRate(FIELD* field) {
+    return((getField(field) + 1)*2U); //ms, DS p.28
 }
 
-ITEM const A4960_HoldTorque =
-    {"Hold Torque", "%", 2U, A4960_CONF3_RD, 0x00f0,
-        &A4960_getField, &A4960_setField, &A4960_convPercent};
+FIELD const HoldTorque =
+    {"Hold Torque", pct, 2U, A4960_CONF3_RD, 0x00f0, &convPercent};
 
-ITEM const A4960_HoldTime =
-    {"Hold Time", "ms", 0U, A4960_CONF3_RD, 0x000f,
-        &A4960_getField, &A4960_setField, &A4960_ConvHoldTime};
+FIELD const HoldTime =
+    {"Hold Time",ms, 0U, A4960_CONF3_RD, 0x000f, &ConvHoldTime};
 
-ITEM const A4960_EndCommTime =
-    {"End Comm. Time", "ms", 0U, A4960_CONF4_RD, 0x00f0,
-        &A4960_getField, &A4960_setField, &A4960_ConvEndCommTime};
+FIELD const EndCommTime =
+    {"End Comm. Time",ms, 0U, A4960_CONF4_RD, 0x00f0, &ConvEndCommTime};
 
-ITEM const A4960_StartCommTime =
-    {"Start Comm. Time", "ms", 0U, A4960_CONF4_RD, 0x000f,
-        &A4960_getField, &A4960_setField, &A4960_ConvStartCommTime};
+FIELD const StartCommTime =
+    {"Start Comm. Time",ms, 0U, A4960_CONF4_RD, 0x000f, &ConvStartCommTime};
 
-ITEM const A4960_ForcedCommTorque =
-    {"Forced Comm. Ramp-up Torque", "%", 2U, A4960_CONF5_RD, 0x00f0,
-        &A4960_getField, &A4960_setField, &A4960_convPercent};
+FIELD const ForcedCommTorque =
+    {"Forced Comm. Ramp-up Torque",pct, 2U, A4960_CONF5_RD, 0x00f0, &convPercent};
 
-ITEM const A4960_RampRate =
-    {"Ramp Rate", "ms", 1U, A4960_CONF5_RD, 0x000f,
-        &A4960_getField, &A4960_setField, &A4960_ConvRampRate};
+FIELD const RampRate =
+    {"Ramp Rate",ms, 1U, A4960_CONF5_RD, 0x000f, &ConvRampRate};
 
 //Flags - all generic
 
-ITEM const A4960_VaFlag =
-    {"Bootcap A Fault", zen, 0U, A4960_MASK_RD, 0x0100,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const VaFlag =
+    {"Bootcap A Fault", zen, 0U, A4960_MASK_RD, 0x0100, &getField};
 
-ITEM const A4960_VbFlag =
-    {"Bootcap B Fault", zen, 0U, A4960_MASK_RD, 0x0080,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const VbFlag =
+    {"Bootcap B Fault", zen, 0U, A4960_MASK_RD, 0x0080, &getField};
 
-ITEM const A4960_VcFlag =
-    {"Bootcap C Fault", zen, 0U, A4960_MASK_RD, 0x0040,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const VcFlag =
+    {"Bootcap C Fault", zen, 0U, A4960_MASK_RD, 0x0040, &getField};
 
-ITEM const A4960_AhFlag =
-    {"Phase A High-Side Fault", zen, 0U, A4960_MASK_RD, 0x0020,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const AhFlag =
+    {"Phase A High-Side Fault", zen, 0U, A4960_MASK_RD, 0x0020, &getField};
 
-ITEM const A4960_AlFlag =
-    {"Phase A Low-Side Fault", zen, 0U, A4960_MASK_RD, 0x0010,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const AlFlag =
+    {"Phase A Low-Side Fault", zen, 0U, A4960_MASK_RD, 0x0010, &getField};
 
-ITEM const A4960_BhFlag =
-    {"Phase B High-Side Fault", zen, 0U, A4960_MASK_RD, 0x0008,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const BhFlag =
+    {"Phase B High-Side Fault", zen, 0U, A4960_MASK_RD, 0x0008, &getField};
 
-ITEM const A4960_BlFlag =
-    {"Phase B Low-Side Fault", zen, 0U, A4960_MASK_RD, 0x0004,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const BlFlag =
+    {"Phase B Low-Side Fault", zen, 0U, A4960_MASK_RD, 0x0004, &getField};
 
-ITEM const A4960_ChFlag =
-    {"Phase C High-Side Fault", zen, 0U, A4960_MASK_RD, 0x0002,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const ChFlag =
+    {"Phase C High-Side Fault", zen, 0U, A4960_MASK_RD, 0x0002, &getField};
 
-ITEM const A4960_ClFlag =
-    {"Phase C Low-Side Fault", zen, 0U, A4960_MASK_RD, 0x0001,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const ClFlag =
+    {"Phase C Low-Side Fault", zen, 0U, A4960_MASK_RD, 0x0001, &getField};
 
 //- Misc all generic
 
-ITEM const A4960_TorqueCtlMethod =
+FIELD const TorqueCtlMethod =
     {"Torque Control Method", "0 - Current, 1 - Duty Cycle", 0U, A4960_CONF3_RD, 0x0100,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+        &getField};
 
-ITEM const A4960_EnableStopOnFail =
-    {"Stop on Fail","0 - Dis, 1- En", 0U, A4960_RUN_RD, 0x0040,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const EnableStopOnFail =
+    {"Stop on Fail", zen, 0U, A4960_RUN_RD, 0x0040, &getField};
 
-ITEM const A4960_DiagOutput =
+FIELD const DiagOutput =
     {"Diag Output","0 - Flt, 1 - LOS, 2 -VDS Thr, 3 - clock", 0U, A4960_RUN_RD, 0x0030,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+        &getField};
 
-ITEM const A4960_RestartControl =
-    {"Restart Control","0 - Dis, 1 - En", 0U, A4960_RUN_RD, 0x0080,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+FIELD const RestartControl =
+    {"Restart Control", zen, 0U, A4960_RUN_RD, 0x0080, &getField};
 
-ITEM const A4960_TwFlag =
+FIELD const TwFlag =
     {"Temperature Warning Fault", zen, 0U, A4960_MASK_RD, 0x0800,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+        &getField};
 
-ITEM const A4960_TsFlag =
+FIELD const TsFlag =
     {"Thermal Shutdown Fault", zen, 0U, A4960_MASK_RD, 0x0400,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+        &getField};
 
-ITEM const A4960_LosFlag =
+FIELD const LosFlag =
     {"BEMF Sync. Loss Fault", zen, 0U, A4960_MASK_RD, 0x0200,
-        &A4960_getField, &A4960_setField, &A4960_getField};
+        &getField};
 
 
 //- PWM access
@@ -796,30 +674,6 @@ void BSP_init(void) {
     Tacho_init();
     HEE_init();
 }
-
-#ifdef UNDEF
-/*--------------------------------------------------------------------------*/
-void BSP_init(void) {
-    RCONbits.SWDTEN = 0;                                /* disable Watchdog */
-
-    TRISA = 0x00;                                /* set LED pins as outputs */
-    PORTA = 0x00;                               /* set LEDs drive state low */
-    TRISB = 0x00;
-    PORTB = 0x00;
-    ANSA = 0x00;
-    ANSB = 0x00;
-
-    TACHO_TRIS = 1;    //tachometer input
-    DIAG_TRIS = 1;     //diag pin input
-
-    SPI_init();
-    PWM_init();
-    Tacho_init();
-    HEE_init();
-}
-
-#endif
-
 /*${BSP::QPn::QF_onStartup} ................................................*/
 void QF_onStartup(void) {
     T1CON = 0x0000U;  /* Use Internal Osc (Fcy), 16 bit mode, prescaler = 1 */

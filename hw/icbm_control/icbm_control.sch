@@ -8,34 +8,34 @@
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
-<layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
-<layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
-<layer number="3" name="Route3" color="4" fill="3" visible="no" active="no"/>
-<layer number="4" name="Route4" color="1" fill="4" visible="no" active="no"/>
-<layer number="5" name="Route5" color="4" fill="4" visible="no" active="no"/>
-<layer number="6" name="Route6" color="1" fill="8" visible="no" active="no"/>
-<layer number="7" name="Route7" color="4" fill="8" visible="no" active="no"/>
-<layer number="8" name="Route8" color="1" fill="2" visible="no" active="no"/>
-<layer number="9" name="Route9" color="4" fill="2" visible="no" active="no"/>
-<layer number="10" name="Route10" color="1" fill="7" visible="no" active="no"/>
-<layer number="11" name="Route11" color="4" fill="7" visible="no" active="no"/>
-<layer number="12" name="Route12" color="1" fill="5" visible="no" active="no"/>
-<layer number="13" name="Route13" color="4" fill="5" visible="no" active="no"/>
-<layer number="14" name="Route14" color="1" fill="6" visible="no" active="no"/>
-<layer number="15" name="Route15" color="4" fill="6" visible="no" active="no"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
-<layer number="17" name="Pads" color="2" fill="1" visible="no" active="no"/>
-<layer number="18" name="Vias" color="2" fill="1" visible="no" active="no"/>
-<layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="no"/>
-<layer number="20" name="Dimension" color="15" fill="1" visible="no" active="no"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="no"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="no" active="no"/>
-<layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="no"/>
-<layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="no"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="no" active="no"/>
-<layer number="26" name="bNames" color="7" fill="1" visible="no" active="no"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="no" active="no"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="no" active="no"/>
+<layer number="1" name="Top" color="4" fill="1" visible="yes" active="no"/>
+<layer number="2" name="Route2" color="1" fill="3" visible="yes" active="no"/>
+<layer number="3" name="Route3" color="4" fill="3" visible="yes" active="no"/>
+<layer number="4" name="Route4" color="1" fill="4" visible="yes" active="no"/>
+<layer number="5" name="Route5" color="4" fill="4" visible="yes" active="no"/>
+<layer number="6" name="Route6" color="1" fill="8" visible="yes" active="no"/>
+<layer number="7" name="Route7" color="4" fill="8" visible="yes" active="no"/>
+<layer number="8" name="Route8" color="1" fill="2" visible="yes" active="no"/>
+<layer number="9" name="Route9" color="4" fill="2" visible="yes" active="no"/>
+<layer number="10" name="Route10" color="1" fill="7" visible="yes" active="no"/>
+<layer number="11" name="Route11" color="4" fill="7" visible="yes" active="no"/>
+<layer number="12" name="Route12" color="1" fill="5" visible="yes" active="no"/>
+<layer number="13" name="Route13" color="4" fill="5" visible="yes" active="no"/>
+<layer number="14" name="Route14" color="1" fill="6" visible="yes" active="no"/>
+<layer number="15" name="Route15" color="4" fill="6" visible="yes" active="no"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="no"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="no"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="no"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="no"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="no"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="no"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="no"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="no"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="no"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="no"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="no"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="no"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="no"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="no"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="no"/>
 <layer number="31" name="tCream" color="7" fill="4" visible="no" active="no"/>
@@ -44,8 +44,8 @@
 <layer number="34" name="bFinish" color="6" fill="6" visible="no" active="no"/>
 <layer number="35" name="tGlue" color="7" fill="4" visible="no" active="no"/>
 <layer number="36" name="bGlue" color="7" fill="5" visible="no" active="no"/>
-<layer number="37" name="tTest" color="7" fill="1" visible="no" active="no"/>
-<layer number="38" name="bTest" color="7" fill="1" visible="no" active="no"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="yes" active="no"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="yes" active="no"/>
 <layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="no"/>
 <layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="no"/>
 <layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="no"/>
@@ -53,19 +53,19 @@
 <layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="no"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="no" active="no"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="no" active="no"/>
-<layer number="46" name="Milling" color="3" fill="1" visible="no" active="no"/>
-<layer number="47" name="Measures" color="7" fill="1" visible="no" active="no"/>
-<layer number="48" name="Document" color="7" fill="1" visible="no" active="no"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="no" active="no"/>
-<layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="no"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="no"/>
-<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
-<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
-<layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
-<layer number="57" name="tCAD" color="7" fill="1" visible="no" active="no"/>
-<layer number="59" name="tCarbon" color="7" fill="1" visible="no" active="no"/>
-<layer number="60" name="bCarbon" color="7" fill="1" visible="no" active="no"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="yes" active="no"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="yes" active="no"/>
+<layer number="48" name="Document" color="7" fill="1" visible="yes" active="no"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="no"/>
+<layer number="50" name="dxf" color="7" fill="1" visible="yes" active="no"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="no"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="no"/>
+<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="yes" active="no"/>
+<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="yes" active="no"/>
+<layer number="56" name="wert" color="7" fill="1" visible="yes" active="no"/>
+<layer number="57" name="tCAD" color="7" fill="1" visible="yes" active="no"/>
+<layer number="59" name="tCarbon" color="7" fill="1" visible="yes" active="no"/>
+<layer number="60" name="bCarbon" color="7" fill="1" visible="yes" active="no"/>
 <layer number="90" name="Modules" color="5" fill="1" visible="yes" active="yes"/>
 <layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
@@ -288,6 +288,45 @@ Source: CS Eagle 7.2 distro</description>
 <text x="-16.637" y="-2.54" size="1.778" layer="25" ratio="10" rot="R90">&gt;NAME</text>
 <text x="-14.478" y="-0.9398" size="1.778" layer="27" ratio="10">&gt;VALUE</text>
 </package>
+<package name="DIL28-3-TT">
+<description>&lt;b&gt;Dual inline 0.1" pitch 0.3" width 28 pin&lt;/p&gt; toner transfer variant</description>
+<wire x1="17.78" y1="2.921" x2="-17.78" y2="2.921" width="0.1524" layer="21"/>
+<wire x1="-17.78" y1="-2.921" x2="17.78" y2="-2.921" width="0.1524" layer="21"/>
+<wire x1="17.78" y1="2.921" x2="17.78" y2="-2.921" width="0.1524" layer="21"/>
+<wire x1="-17.78" y1="2.921" x2="-17.78" y2="1.016" width="0.1524" layer="21"/>
+<wire x1="-17.78" y1="-2.921" x2="-17.78" y2="-1.016" width="0.1524" layer="21"/>
+<wire x1="-17.78" y1="1.016" x2="-17.78" y2="-1.016" width="0.1524" layer="21" curve="-180"/>
+<pad name="1" x="-16.51" y="-3.81" drill="0.254" diameter="1.6764" shape="square" rot="R90"/>
+<pad name="2" x="-13.97" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="7" x="-1.27" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="8" x="1.27" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="3" x="-11.43" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="4" x="-8.89" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="6" x="-3.81" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="5" x="-6.35" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="9" x="3.81" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="10" x="6.35" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="11" x="8.89" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="12" x="11.43" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="13" x="13.97" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="14" x="16.51" y="-3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="15" x="16.51" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="16" x="13.97" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="17" x="11.43" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="18" x="8.89" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="19" x="6.35" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="20" x="3.81" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="21" x="1.27" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="22" x="-1.27" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="23" x="-3.81" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="24" x="-6.35" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="25" x="-8.89" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="26" x="-11.43" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="27" x="-13.97" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<pad name="28" x="-16.51" y="3.81" drill="0.254" diameter="1.4224" shape="long" rot="R90"/>
+<text x="-18.034" y="-2.921" size="1.27" layer="25" ratio="10" rot="R90">&gt;NAME</text>
+<text x="-8.509" y="-0.635" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+</package>
 </packages>
 <symbols>
 <symbol name="PIC24FX16KM202">
@@ -369,6 +408,41 @@ Source: CS Eagle 7.2 distro</description>
 </technologies>
 </device>
 <device name="D-MILL" package="DIL28_MILL">
+<connects>
+<connect gate="G$1" pin="!MCLR" pad="1"/>
+<connect gate="G$1" pin="AVDD" pad="28"/>
+<connect gate="G$1" pin="AVSS" pad="27"/>
+<connect gate="G$1" pin="IC2/RB9" pad="18"/>
+<connect gate="G$1" pin="OC1B/RB8" pad="17"/>
+<connect gate="G$1" pin="OC3B/RB13" pad="24"/>
+<connect gate="G$1" pin="OSCI" pad="9"/>
+<connect gate="G$1" pin="OSCO" pad="10"/>
+<connect gate="G$1" pin="PGEC2" pad="22"/>
+<connect gate="G$1" pin="PGED2" pad="21"/>
+<connect gate="G$1" pin="RA0/AN0/C3INC" pad="2"/>
+<connect gate="G$1" pin="RA1/AN1" pad="3"/>
+<connect gate="G$1" pin="RA4/AN16" pad="12"/>
+<connect gate="G$1" pin="RB0/U2TX" pad="4"/>
+<connect gate="G$1" pin="RB1/U2RX" pad="5"/>
+<connect gate="G$1" pin="RB12/AN12/OC2B/DAC1OUT" pad="23"/>
+<connect gate="G$1" pin="RB14/OA1IND/OA2IND/AN10/C3INB" pad="25"/>
+<connect gate="G$1" pin="RB15/AN9/REFO/OA2OUT/C3INA" pad="26"/>
+<connect gate="G$1" pin="RB2/U1RX" pad="6"/>
+<connect gate="G$1" pin="RB3/AN5/OA1OUT/C2INC" pad="7"/>
+<connect gate="G$1" pin="RB4/AN15" pad="11"/>
+<connect gate="G$1" pin="RB7/U1TX" pad="16"/>
+<connect gate="G$1" pin="SCK2/RB5" pad="14"/>
+<connect gate="G$1" pin="SDI2/RA7" pad="19"/>
+<connect gate="G$1" pin="SDO2/RB6" pad="15"/>
+<connect gate="G$1" pin="VCAP" pad="20"/>
+<connect gate="G$1" pin="VDD" pad="13"/>
+<connect gate="G$1" pin="VSS" pad="8"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="-TT" package="DIL28-3-TT">
 <connects>
 <connect gate="G$1" pin="!MCLR" pad="1"/>
 <connect gate="G$1" pin="AVDD" pad="28"/>
@@ -1539,39 +1613,6 @@ chip</description>
 <smd name="P$1" x="-2.25" y="0" dx="1.9" dy="2.4" layer="1"/>
 <smd name="P$2" x="2.25" y="0" dx="1.9" dy="2.4" layer="1"/>
 </package>
-<package name="HC49_CS10_COMBO">
-<description>Combination of HC49 and Citizen CS10 quartz crystal packages</description>
-<wire x1="-3.429" y1="-2.286" x2="3.429" y2="-2.286" width="0.2032" layer="21"/>
-<wire x1="3.429" y1="2.286" x2="-3.429" y2="2.286" width="0.2032" layer="21"/>
-<wire x1="3.429" y1="2.286" x2="3.429" y2="-2.286" width="0.2032" layer="21" curve="-180"/>
-<wire x1="-3.429" y1="2.286" x2="-3.429" y2="-2.286" width="0.2032" layer="21" curve="180"/>
-<wire x1="-3" y1="1.5" x2="-3" y2="1.75" width="0.2032" layer="21"/>
-<wire x1="-3" y1="1.75" x2="3" y2="1.75" width="0.2032" layer="21"/>
-<wire x1="3" y1="1.75" x2="3" y2="1.5" width="0.2032" layer="21"/>
-<wire x1="3" y1="-1.5" x2="3" y2="-1.75" width="0.2032" layer="21"/>
-<wire x1="3" y1="-1.75" x2="-3" y2="-1.75" width="0.2032" layer="21"/>
-<wire x1="-3" y1="-1.75" x2="-3" y2="-1.5" width="0.2032" layer="21"/>
-<wire x1="-0.25" y1="1" x2="-0.25" y2="-1" width="0.2032" layer="21"/>
-<wire x1="-0.25" y1="-1" x2="0.25" y2="-1" width="0.2032" layer="21"/>
-<wire x1="0.25" y1="-1" x2="0.25" y2="1" width="0.2032" layer="21"/>
-<wire x1="0.25" y1="1" x2="-0.25" y2="1" width="0.2032" layer="21"/>
-<wire x1="0.75" y1="1.25" x2="0.75" y2="0" width="0.2032" layer="21"/>
-<wire x1="0.75" y1="0" x2="0.75" y2="-1.25" width="0.2032" layer="21"/>
-<wire x1="1" y1="0" x2="0.75" y2="0" width="0.2032" layer="21"/>
-<wire x1="-0.75" y1="1.25" x2="-0.75" y2="0" width="0.2032" layer="21"/>
-<wire x1="-0.75" y1="0" x2="-0.75" y2="-1.25" width="0.2032" layer="21"/>
-<wire x1="-1" y1="0" x2="-0.75" y2="0" width="0.2032" layer="21"/>
-<wire x1="-3" y1="1.75" x2="3" y2="1.75" width="0.127" layer="39"/>
-<wire x1="3" y1="1.75" x2="3" y2="-1.75" width="0.127" layer="39"/>
-<wire x1="3" y1="-1.75" x2="-3" y2="-1.75" width="0.127" layer="39"/>
-<wire x1="-3" y1="-1.75" x2="-3" y2="1.75" width="0.127" layer="39"/>
-<pad name="1" x="-2.54" y="0" drill="0.8128" rot="R90"/>
-<pad name="2" x="2.54" y="0" drill="0.8128" rot="R90"/>
-<smd name="1_1" x="-2.25" y="0" dx="1.9" dy="2.4" layer="1"/>
-<smd name="2_2" x="2.25" y="0" dx="1.9" dy="2.4" layer="1"/>
-<text x="-5.08" y="-3.937" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
-<text x="-5.08" y="2.667" size="1.27" layer="25" ratio="10">&gt;NAME</text>
-</package>
 <package name="HC49US_MILL">
 <wire x1="-3.429" y1="-2.286" x2="3.429" y2="-2.286" width="0.2032" layer="21"/>
 <wire x1="3.429" y1="2.286" x2="-3.429" y2="2.286" width="0.2032" layer="21"/>
@@ -1753,6 +1794,22 @@ chip</description>
 <circle x="0" y="0" radius="5" width="0.2032" layer="51"/>
 <smd name="N" x="0" y="4.35" dx="4.4" dy="2.5" layer="1" rot="R90"/>
 <smd name="P" x="0" y="-4.35" dx="4.4" dy="2.5" layer="1" rot="R90"/>
+</package>
+<package name="CAP_RAD_8MM_TT">
+<wire x1="-3.3" y1="2.6" x2="-3.3" y2="-2.7" width="0.2032" layer="21"/>
+<circle x="0" y="0" radius="4.25" width="0.2032" layer="21"/>
+<pad name="N" x="-1.875" y="0" drill="0.5" diameter="2.1844"/>
+<pad name="P" x="1.875" y="0" drill="0.5" diameter="2.1844"/>
+</package>
+<package name="HC49US_TT">
+<wire x1="-3.429" y1="-2.286" x2="3.429" y2="-2.286" width="0.2032" layer="21"/>
+<wire x1="3.429" y1="2.286" x2="-3.429" y2="2.286" width="0.2032" layer="21"/>
+<wire x1="3.429" y1="2.286" x2="3.429" y2="-2.286" width="0.2032" layer="21" curve="-180"/>
+<wire x1="-3.429" y1="2.286" x2="-3.429" y2="-2.286" width="0.2032" layer="21" curve="180"/>
+<pad name="1" x="-2.54" y="0" drill="0.5" diameter="1.778" rot="R90"/>
+<pad name="2" x="2.54" y="0" drill="0.5" diameter="1.778" rot="R90"/>
+<text x="-5.08" y="-3.937" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+<text x="-5.08" y="2.667" size="1.27" layer="25" ratio="10">&gt;NAME</text>
 </package>
 </packages>
 <symbols>
@@ -2048,6 +2105,15 @@ These are standard SMD and PTH capacitors. Normally 10uF, 47uF, and 100uF in ele
 <technology name=""/>
 </technologies>
 </device>
+<device name="-RAD8-TT" package="CAP_RAD_8MM_TT">
+<connects>
+<connect gate="G$1" pin="+" pad="P"/>
+<connect gate="G$1" pin="-" pad="N"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
 </devices>
 </deviceset>
 <deviceset name="CAP" prefix="C" uservalue="yes">
@@ -2282,12 +2348,16 @@ Various standard crystals</description>
 <technology name=""/>
 </technologies>
 </device>
-<device name="" package="HC49_CS10_COMBO">
+<device name="HC49_MILL" package="HC49US_MILL">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
 <technologies>
 <technology name=""/>
 </technologies>
 </device>
-<device name="HC49_MILL" package="HC49US_MILL">
+<device name="-TT" package="HC49US_TT">
 <connects>
 <connect gate="G$1" pin="1" pad="1"/>
 <connect gate="G$1" pin="2" pad="2"/>
@@ -2820,6 +2890,21 @@ Source: www.rsonline.de .. SMBJ12/C/15/C/24/C/30/C/5.0/C/7.5/C Voltage Suppresso
 <text x="-3.81" y="-2.54" size="1.27" layer="25" rot="R90">&gt;NAME</text>
 <text x="5.08" y="-2.54" size="1.27" layer="27" rot="R90">&gt;VALUE</text>
 </package>
+<package name="LED5MM_TT">
+<wire x1="2.54" y1="-1.905" x2="2.54" y2="1.905" width="0.2032" layer="21"/>
+<wire x1="2.54" y1="-1.905" x2="2.54" y2="1.905" width="0.254" layer="21" curve="-286.260205" cap="flat"/>
+<wire x1="-1.143" y1="0" x2="0" y2="1.143" width="0.1524" layer="51" curve="-90" cap="flat"/>
+<wire x1="0" y1="-1.143" x2="1.143" y2="0" width="0.1524" layer="51" curve="90" cap="flat"/>
+<wire x1="-1.651" y1="0" x2="0" y2="1.651" width="0.1524" layer="51" curve="-90" cap="flat"/>
+<wire x1="0" y1="-1.651" x2="1.651" y2="0" width="0.1524" layer="51" curve="90" cap="flat"/>
+<wire x1="-2.159" y1="0" x2="0" y2="2.159" width="0.1524" layer="51" curve="-90" cap="flat"/>
+<wire x1="0" y1="-2.159" x2="2.159" y2="0" width="0.1524" layer="51" curve="90" cap="flat"/>
+<circle x="0" y="0" radius="2.54" width="0.1524" layer="21"/>
+<pad name="A" x="-1.27" y="0" drill="0.5" diameter="1.778"/>
+<pad name="K" x="1.27" y="0" drill="0.5" diameter="1.778"/>
+<text x="3.175" y="0.5334" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="3.2004" y="-1.8034" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+</package>
 </packages>
 <symbols>
 <symbol name="MOSFET-PCHANNEL">
@@ -3055,6 +3140,15 @@ Standard schematic elements and footprints for 5mm, 3mm, 1206, and 0603 sized LE
 <technology name=""/>
 </technologies>
 </device>
+<device name="-TT" package="LED5MM_TT">
+<connects>
+<connect gate="G$1" pin="A" pad="A"/>
+<connect gate="G$1" pin="C" pad="K"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
 </devices>
 </deviceset>
 </devicesets>
@@ -3169,13 +3263,13 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 </classes>
 <parts>
 <part name="FRAME1" library="ch_docs" deviceset="FRAME_B_L" device=""/>
-<part name="U1" library="ch_microchip" deviceset="PIC24FX16KM202" device="-DIP" value="PIC24FV16KM202"/>
+<part name="U1" library="ch_microchip" deviceset="PIC24FX16KM202" device="-TT" value="PIC24FV16KM202"/>
 <part name="X1" library="ch_connectors" deviceset="PIC_ICD" device="-TT" value="ICD"/>
 <part name="X2" library="ch_connectors" deviceset="SERIAL" device="-SFTT" value="Console"/>
-<part name="JP1" library="ch_connectors" deviceset="JP1E" device="PTH" value="5V"/>
+<part name="JP1" library="ch_connectors" deviceset="JP1E" device="-LUT" value="5V"/>
 <part name="GND1" library="ch_passive" deviceset="GND" device=""/>
 <part name="P+1" library="ch_passive" deviceset="+5V" device=""/>
-<part name="C1" library="ch_passive" deviceset="CAP_POL" device="-RAD8"/>
+<part name="C1" library="ch_passive" deviceset="CAP_POL" device="-RAD8-TT"/>
 <part name="C2" library="ch_passive" deviceset="CAP" device="0603"/>
 <part name="P+2" library="ch_passive" deviceset="+5V" device=""/>
 <part name="C3" library="ch_passive" deviceset="C" device="-0603" value="0.1uF"/>
@@ -3190,9 +3284,9 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <part name="R2" library="ch_passive" deviceset="RESISTOR" device="-0603" value="10K"/>
 <part name="P+3" library="ch_passive" deviceset="+5V" device=""/>
 <part name="GND7" library="ch_passive" deviceset="GND" device=""/>
-<part name="S1" library="ch_passive" deviceset="TAC_SWITCH" device="PTH" value="RUN"/>
+<part name="S1" library="ch_passive" deviceset="TAC_SWITCH" device="-LUT" value="RUN"/>
 <part name="GND9" library="ch_passive" deviceset="GND" device=""/>
-<part name="S2" library="ch_passive" deviceset="TAC_SWITCH" device="PTH" value="BRAKE"/>
+<part name="S2" library="ch_passive" deviceset="TAC_SWITCH" device="-LUT" value="BRAKE"/>
 <part name="U2" library="ch_allegro" deviceset="A4960" device="" value="A4960"/>
 <part name="C9" library="ch_passive" deviceset="C" device="-0603" value="470n"/>
 <part name="R3" library="ch_passive" deviceset="RESISTOR" device="-0603" value="22K"/>
@@ -3231,13 +3325,13 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <part name="JP13" library="ch_connectors" deviceset="M01" device="-TT" value="PHA"/>
 <part name="JP14" library="ch_connectors" deviceset="M01" device="-TT" value="PHB"/>
 <part name="JP15" library="ch_connectors" deviceset="M01" device="-TT" value="PHC"/>
-<part name="Q3" library="ch_passive" deviceset="CRYSTAL_SFE" device="HC49US" value="8 MHz"/>
+<part name="Q3" library="ch_passive" deviceset="CRYSTAL_SFE" device="-TT" value="8 MHz"/>
 <part name="C16" library="ch_passive" deviceset="C" device="-0603" value="18"/>
 <part name="C17" library="ch_passive" deviceset="C" device="-0603" value="18"/>
 <part name="GND8" library="ch_passive" deviceset="GND" device=""/>
 <part name="E1" library="ch_electromech" deviceset="ROTARY_ENCODER_SWITCH" device="-LUT"/>
 <part name="GND15" library="ch_passive" deviceset="GND" device=""/>
-<part name="D2" library="ch_generic" deviceset="LED" device="5MM"/>
+<part name="D2" library="ch_generic" deviceset="LED" device="-TT"/>
 <part name="R11" library="ch_passive" deviceset="RESISTOR" device="-0603" value="10K"/>
 <part name="P+4" library="ch_passive" deviceset="+5V" device=""/>
 </parts>
