@@ -92,80 +92,6 @@ for(i = 0; i &lt;= count; i++) {
 
 Console_printStr(crlf);</code>
    </operation>
-   <operation name="printItems" type="void" visibility="0x02" properties="0x00">
-    <documentation>Prints set of items defined by array of pointers to access methods</documentation>
-    <parameter name="item" type="ITEM**"/>
-    <parameter name="cnt" type="uint8_t"/>
-    <code>uint8_t i;
-
-Console_printStr(&quot;\r\nPress number to select field,&quot;);
-Console_printStr(&quot;\r\nthen w,a,s,d to change it&quot;);
-Console_printStr(&quot;\r\n\n0. Back&quot;);
-
-Console_printStr(crlf);
-
-for(i = 0; i &lt; cnt; i++) {
-    if(i+1 == me-&gt;menuselect) {    //highlight
-        Console_printStr(&quot;&gt;&gt;&gt; &quot;);
-    } else {
-        Console_printNum(i + 1,10,0U);
-        Console_printStr(&quot;. &quot;);
-    }
-
-    Console_printStr(item[i]-&gt;name);    //field name
-
-    Console_printStr(&quot; [&quot;);
-    Console_printNum(item[i]-&gt;get(&amp;(*item[i])), 2, 0U); //field contents
-    Console_printStr(&quot;], &quot;);
-
-    Console_printNum(item[i]-&gt;conv(&amp;(*item[i])), 10, item[i]-&gt;point);//field value
-                        
-    Console_printStr(space);
-    Console_printStr(item[i]-&gt;unit);        //field unit
-    Console_printStr(crlf);
-}
-Console_printStr(crlf);</code>
-   </operation>
-   <operation name="handleItems" type="void" visibility="0x02" properties="0x00">
-    <parameter name="key" type="uint8_t"/>
-    <parameter name="item" type="ITEM**"/>
-    <parameter name="cnt" type="uint8_t"/>
-    <code>uint8_t tmpdata = atoi((const char*)&amp;key);
-
-if(isdigit(key)) {    //numeric
-    if(tmpdata &gt; cnt) {
-        return;    //wrong key, do not handle
-    }
-    else {
-        me-&gt;menuselect = tmpdata;    //remember selection
-        return;
-    }
-}
-
-if(me-&gt;menuselect == 0) {
-    return;    //no further processing necessary
-}
-
-tmpdata =
-    item[me-&gt;menuselect-1]-&gt;get(&amp;(*item[me-&gt;menuselect-1]));
-
-if(key == 'w' || key == 'W') {    //increment
-    tmpdata++;
-}
-
-if(key == 's' || key == 'S') { //decrement
-    tmpdata--;
-}
-
-uint16_t tmplen = item[me-&gt;menuselect-1]-&gt;mask;
-
-while((tmplen &amp; 0x01) == 0 ) { //LSB eq zero
-    tmplen &gt;&gt;= 1;
-}
-
-tmpdata &amp;= tmplen;
-item[me-&gt;menuselect-1]-&gt;set(tmpdata,&amp;(*item[me-&gt;menuselect-1]));</code>
-   </operation>
    <operation name="Tacho_ctor" type="void" visibility="0x02" properties="0x01">
     <parameter name="me" type="Tacho* const"/>
     <code>QMsm_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Tacho_initial));</code>
@@ -278,15 +204,14 @@ setField(tmpdata,&amp;(*field[me-&gt;menuselect-1]));
      <tran trig="FF">
       <action>//Fault reported
 
-uint8_t i =
-    A4960_TwFlag.get((struct item_t*)&amp;A4960_TwFlag);
+//uint8_t i =
+//    A4960_TwFlag.get((struct item_t*)&amp;A4960_TwFlag);
 
-me-&gt;diag =
-    A4960_TwFlag.set(i, (struct item_t*)&amp;A4960_TwFlag);
+//me-&gt;diag =
+//    A4960_TwFlag.set(i, (struct item_t*)&amp;A4960_TwFlag);
 
-
-
-
+uint8_t i = getField((struct field_t*)&amp;TwFlag);
+me-&gt;diag = setField(i, (struct field_t*)&amp;TwFlag);
 
 Console_printStr(&quot;\r\nA4960 fault&quot;);</action>
       <tran_glyph conn="3,82,3,-1,3">
@@ -594,8 +519,7 @@ Console_handleMenuItems
      </state>
      <state name="Run">
       <documentation>Manipulating run parameters</documentation>
-      <entry>//Console_printItems(me, (ITEM**)runItems, RUN_CNT);
-Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);</entry>
+      <entry>Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -620,8 +544,8 @@ Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);</entry>
       </state_glyph>
      </state>
      <state name="Startup">
-      <entry>Console_printItems
-    (me, (ITEM**)startupItems, STARTUP_CNT);</entry>
+      <entry>Console_printMenuItems
+    (me, (FIELD**)startupFields, STARTUP_CNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -631,8 +555,8 @@ Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);</entry>
        </choice>
        <choice target="../..">
         <guard>else</guard>
-        <action>Console_handleItems
-    (me, (uint8_t)Q_PAR(me), (ITEM**)startupItems,
+        <action>Console_handleMenuItems
+    (me, (uint8_t)Q_PAR(me), (FIELD**)startupFields,
     STARTUP_CNT);</action>
         <choice_glyph conn="58,69,4,3,3,-8">
          <action box="-6,1,4,2"/>
@@ -647,8 +571,9 @@ Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);</entry>
       </state_glyph>
      </state>
      <state name="Misc">
-      <entry>Console_printItems
-    (me, (ITEM**)miscItems, MISC_CNT);</entry>
+      <entry>Console_printMenuItems
+    (me,(FIELD**)miscFields, MISC_CNT);
+</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -658,8 +583,8 @@ Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);</entry>
        </choice>
        <choice target="../..">
         <guard>else</guard>
-        <action>Console_handleItems
-    (me, (uint8_t)Q_PAR(me), (ITEM**)miscItems,
+        <action>Console_handleMenuItems
+    (me, (uint8_t)Q_PAR(me), (FIELD**)miscFields,
     MISC_CNT);</action>
         <choice_glyph conn="58,93,4,3,3,-8">
          <action box="-6,1,4,2"/>
@@ -676,8 +601,8 @@ Console_printMenuItems(me, (FIELD**)runFields, RUN_CNT);</entry>
      <state name="Flags">
       <entry>Console_printStr(&quot;\r\nUse 'Misc' menu for non-bridge related faults&quot;);
 
-Console_printItems
-    (me, (ITEM**)flagsItems, FLAGS_CNT);</entry>
+Console_printMenuItems
+    (me, (FIELD**)flagsFields, FLAGS_CNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -687,9 +612,9 @@ Console_printItems
        </choice>
        <choice target="../..">
         <guard>else</guard>
-        <action>Console_handleItems
-    (me, (uint8_t)Q_PAR(me), (ITEM**)flagsItems,
-    MISC_CNT);</action>
+        <action>Console_handleMenuItems
+    (me, (uint8_t)Q_PAR(me), (FIELD**)flagsFields,
+    FLAGS_CNT);</action>
         <choice_glyph conn="58,81,4,3,3,-8">
          <action box="-6,1,4,2"/>
         </choice_glyph>
@@ -703,7 +628,7 @@ Console_printItems
       </state_glyph>
      </state>
      <state name="Control">
-      <entry>Console_printItems(me, (ITEM**)controlItems, CONTROL_CNT);</entry>
+      <entry>//Console_printItems(me, (ITEM**)controlItems, CONTROL_CNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../10">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -713,8 +638,8 @@ Console_printItems
        </choice>
        <choice target="../..">
         <guard>else</guard>
-        <action>Console_handleItems
-    (me,(uint8_t)Q_PAR(me),(ITEM**)controlItems, CONTROL_CNT);</action>
+        <action>//Console_handleItems
+//    (me,(uint8_t)Q_PAR(me),(ITEM**)controlItems, CONTROL_CNT);</action>
         <choice_glyph conn="88,37,4,3,3,-8">
          <action box="-5,1,4,2"/>
         </choice_glyph>
@@ -728,7 +653,7 @@ Console_printItems
       </state_glyph>
      </state>
      <state name="UI">
-      <entry>Console_printItems(me, (ITEM**)uiItems, UI_CNT);</entry>
+      <entry>//Console_printItems(me, (ITEM**)uiItems, UI_CNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../10">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
@@ -738,8 +663,8 @@ Console_printItems
        </choice>
        <choice target="../..">
         <guard>else</guard>
-        <action>Console_handleItems
-    (me,(uint8_t)Q_PAR(me),(ITEM**)uiItems, UI_CNT);</action>
+        <action>//Console_handleItems
+//    (me,(uint8_t)Q_PAR(me),(ITEM**)uiItems, UI_CNT);</action>
         <choice_glyph conn="87,49,4,3,3,-7">
          <action box="-5,1,4,2"/>
         </choice_glyph>
@@ -1065,45 +990,6 @@ if(SSP2CON1bits.WCOL == 1) {    //write collision
 
 return tmpdata;</code>
     </operation>
-    <operation name="A4960_getField" type="uint16_t" visibility="0x02" properties="0x00">
-     <documentation>get contents of a 'reg' and extracts field defined by 'mask'</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>uint16_t tmpdata = A4960_xfer(item-&gt;reg,0U);
-uint16_t tmpmask = item-&gt;mask;
-
-tmpdata &amp;= tmpmask;    //clear the rest
-
-while((tmpmask &amp; 0x01) == 0) {    //LSB equals 0
-    tmpmask &gt;&gt;= 1;
-    tmpdata &gt;&gt;= 1;
-};
-
-return(tmpdata);</code>
-    </operation>
-    <operation name="A4960_setField" type="uint16_t" visibility="0x02" properties="0x00">
-     <documentation>'val' sets content of the field defined by 'reg', 'mask'</documentation>
-     <parameter name="val" type="uint16_t"/>
-     <parameter name="item" type="ITEM*"/>
-     <code>uint16_t tmpdata = A4960_xfer(item-&gt;reg,0U);
-uint16_t tmpmask = item-&gt;mask;
-uint16_t tmpval = val;
-
-tmpdata &amp;= ~tmpmask; //clear the field position
-
-while((tmpmask &amp; 0x1) == 0) { //LSB equals 0
-    tmpmask &gt;&gt;= 1;
-    tmpval &lt;&lt;= 1;
-}
-
-tmpdata |= tmpval;            //insert field
-
-return(A4960_xfer(item-&gt;reg + 1, tmpdata));//write</code>
-    </operation>
-    <operation name="A4960_convPercent" type="uint16_t" visibility="0x02" properties="0x00">
-     <documentation>converts contents to percent (x6.25)</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return((A4960_getField(item) + 1)*625U);</code>
-    </operation>
     <operation name="getField" type="uint16_t" visibility="0x00" properties="0x00">
      <documentation>get contents of a 'reg' and extracts field defined by 'mask'</documentation>
      <parameter name="field" type="FIELD*"/>
@@ -1190,25 +1076,25 @@ return((tmpdata &lt; 3) ? 100U : tmpdata*50U);</code>
     </operation>
    </package>
    <package name="Startup" stereotype="0x02">
-    <operation name="A4960_ConvHoldTime" type="uint16_t" visibility="0x02" properties="0x00">
+    <operation name="ConvHoldTime" type="uint16_t" visibility="0x02" properties="0x00">
      <documentation>returns value of Hold Time</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return(A4960_getField(item)*8 + 2); //ms DS p.27</code>
+     <parameter name="field" type="FIELD*"/>
+     <code>return(getField(field)*8 + 2); //ms DS p.27</code>
     </operation>
-    <operation name="A4960_ConvEndCommTime" type="uint16_t" visibility="0x02" properties="0x00">
+    <operation name="ConvEndCommTime" type="uint16_t" visibility="0x02" properties="0x00">
      <documentation>returns value of End Commutation Time. 10x scale</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return((A4960_getField(item) + 1)*2U); //ms, DS p.28</code>
+     <parameter name="field" type="FIELD*"/>
+     <code>return((getField(field) + 1)*2U); //ms, DS p.28</code>
     </operation>
-    <operation name="A4960_ConvStartCommTime" type="uint16_t" visibility="0x02" properties="0x00">
+    <operation name="ConvStartCommTime" type="uint16_t" visibility="0x02" properties="0x00">
      <documentation>returns value of Start Commutation Time.</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return((A4960_getField(item) + 1)*8U); //ms, DS p.28</code>
+     <parameter name="field" type="FIELD*"/>
+     <code>return((getField(field) + 1)*8U); //ms, DS p.28</code>
     </operation>
-    <operation name="A4960_ConvRampRate" type="uint16_t" visibility="0x02" properties="0x00">
+    <operation name="ConvRampRate" type="uint16_t" visibility="0x02" properties="0x00">
      <documentation>returns value of Ramp Rate, x1000</documentation>
-     <parameter name="item" type="ITEM*"/>
-     <code>return((A4960_getField(item) + 1)*2U); //ms, DS p.28</code>
+     <parameter name="field" type="FIELD*"/>
+     <code>return((getField(field) + 1)*2U); //ms, DS p.28</code>
     </operation>
    </package>
   </package>
@@ -1658,6 +1544,7 @@ int_t main () {
 //1.console on UART1
 //SPI1
 //CS on pin 25
+//ICD on different pins
 
 /* PIC24FV16KM202-specific */
 
@@ -1766,7 +1653,7 @@ volatile uint8_t heeq_Tail;    //interrupt changes this
 
 //- Const
 
-//Enable-disable message
+//Enable-disable messages
 const char const zen[] = &quot;\x08\x08\x08 0 - Enable, 1- Disable&quot;;
 
 //Common units
@@ -1791,12 +1678,9 @@ $define(BSP::HEE::_NVMInterrupt)
 
 $define(BSP::A4960::Common::SPI_init)
 $define(BSP::A4960::Common::A4960_xfer)
-$define(BSP::A4960::Common::A4960_getField)
-$define(BSP::A4960::Common::A4960_setField)
 $define(BSP::A4960::Common::getField)
 $define(BSP::A4960::Common::setField)
 
-$define(BSP::A4960::Common::A4960_convPercent)
 $define(BSP::A4960::Common::convPercent)
 //- Limits
 $define(BSP::A4960::Limits::ConvCommBlankTime)
@@ -1846,198 +1730,110 @@ $define(BSP::A4960::Run::ConvBemfWindow)
 
 
 FIELD const FixedOffTime = 
-    {&quot;Fixed Off Time&quot;,us, 1U, A4960_CONF2_RD, 0x001f,
-        &amp;ConvFixedOffTime};
+    {&quot;Fixed Off Time&quot;,us, 1U, A4960_CONF2_RD, 0x001f, &amp;ConvFixedOffTime};
 
 FIELD const PhaseAdvance = 
-    {&quot;Phase Advance&quot;,&quot;deg(e)&quot;, 3U, A4960_CONF5_RD, 0x0c00,
-        &amp;ConvPhaseAdvance};
+    {&quot;Phase Advance&quot;,&quot;deg(e)&quot;, 3U, A4960_CONF5_RD, 0x0c00, &amp;ConvPhaseAdvance};
 
 FIELD const BemfHyst = 
     {&quot;BEMF Hysteresis&quot;,&quot;0 - Auto, 1 - None, 2 - High, 3 - Low&quot;, 0U, A4960_RUN_RD, 0x0c00,
         &amp;getField};
 
 FIELD const BemfWindow = 
-    {&quot;BEMF Window&quot;,us, 0U, A4960_RUN_RD, 0x0380,
-        &amp;ConvBemfWindow};
+    {&quot;BEMF Window&quot;,us, 0U, A4960_RUN_RD, 0x0380, &amp;ConvBemfWindow};
 
 FIELD const Brake = 
-    {&quot;Brake&quot;,&quot;0 - Off, 1 - On&quot;, 0U, A4960_RUN_RD, 0x0004,
-        &amp;getField};
+    {&quot;Brake&quot;,&quot;0 - Off, 1 - On&quot;, 0U, A4960_RUN_RD, 0x0004, &amp;getField};
 
 FIELD const Direction = 
-    {&quot;Direction&quot;,&quot;0 - Fwd, 1 - Rev&quot;, 0U, A4960_RUN_RD, 0x0002,
-        &amp;getField};
+    {&quot;Direction&quot;,&quot;0 - Fwd, 1 - Rev&quot;, 0U, A4960_RUN_RD, 0x0002, &amp;getField};
 
 FIELD const Run = 
-    {&quot;Run&quot;,&quot;0 - Coast, 1 - Run&quot;, 0U, A4960_RUN_RD, 0x0001,
-        &amp;getField};
+    {&quot;Run&quot;,&quot;0 - Coast, 1 - Run&quot;, 0U, A4960_RUN_RD, 0x0001, &amp;getField};
 
-#ifdef UNDEF
-
-ITEM const A4960_CommBlankTime = 
-    {&quot;Comm. Blank Time&quot;, zen/*&quot;ns&quot;*/, 0U, A4960_CONF0_RD, 0x0c00,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvCommBlankTime};
-
-ITEM const A4960_BlankTime = 
-    {&quot;Blank Time&quot;,&quot;us&quot;, 3U, A4960_CONF0_RD, 0x03c0,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvBlankTime};
-
-ITEM const A4960_DeadTime = 
-    {&quot;Dead Time&quot;,&quot;ns&quot;, 0U, A4960_CONF0_RD, 0x003f,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvDeadTime};
-
-ITEM const A4960_CurrentSenseRefRatio = 
-    {&quot;Current Sense&quot;,&quot;%&quot;, 2U, A4960_CONF1_RD, 0x03c0,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_convPercent};
-
-ITEM const A4960_VdsThreshold = 
-    {&quot;VDS Threshold&quot;,&quot;mV&quot;, 0U, A4960_CONF1_RD, 0x003f,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvVdsThreshold};
-
-
-
-/* ----------------------------- */
-
-//- Run
-//$define(BSP::A4960::Run::A4960_ConvFixedOffTime)
-//$define(BSP::A4960::Run::A4960_ConvPhaseAdvance)
-//BemfHyst - get
-//$define(BSP::A4960::Run::A4960_ConvBemfWindow)
-//Brake - get
-//Direction - get
-//Run - get
-
-
-ITEM const A4960_FixedOffTime = 
-    {&quot;Fixed Off Time&quot;, &quot;us&quot;, 1U, A4960_CONF2_RD, 0x001f,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvFixedOffTime};
-
-ITEM const A4960_PhaseAdvance = 
-    {&quot;Phase Advance&quot;,&quot;deg(e)&quot;, 3U, A4960_CONF5_RD, 0x0c00,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvPhaseAdvance};
-
-ITEM const A4960_BemfHyst = 
-    {&quot;BEMF Hysteresis&quot;,&quot;0 - Auto, 1 - None, 2 - High, 3 - Low&quot;, 0U, A4960_RUN_RD, 0x0c00,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
-
-ITEM const A4960_BemfWindow = 
-    {&quot;BEMF Window&quot;,&quot;us&quot;, 0U, A4960_RUN_RD, 0x0380,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvBemfWindow};
-
-ITEM const A4960_Brake = 
-    {&quot;Brake&quot;,&quot;0 - Off, 1 - On&quot;, 0U, A4960_RUN_RD, 0x0004,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
-
-ITEM const A4960_Direction = 
-    {&quot;Direction&quot;,&quot;0 - Fwd, 1 - Rev&quot;, 0U, A4960_RUN_RD, 0x0002,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
-
-ITEM const A4960_Run = 
-    {&quot;Run&quot;,&quot;0 - Coast, 1 - Run&quot;, 0U, A4960_RUN_RD, 0x0001,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
-
-
-#endif
+//Startup
 
 //HoldTorque - percent
-$define(BSP::A4960::Startup::A4960_ConvHoldTime)
-$define(BSP::A4960::Startup::A4960_ConvEndCommTime)
-$define(BSP::A4960::Startup::A4960_ConvStartCommTime)
+$define(BSP::A4960::Startup::ConvHoldTime)
+$define(BSP::A4960::Startup::ConvEndCommTime)
+$define(BSP::A4960::Startup::ConvStartCommTime)
 //ForcedCommTorque - A_ConvPercent
-$define(BSP::A4960::Startup::A4960_ConvRampRate)
+$define(BSP::A4960::Startup::ConvRampRate)
 
-ITEM const A4960_HoldTorque = 
-    {&quot;Hold Torque&quot;, &quot;%&quot;, 2U, A4960_CONF3_RD, 0x00f0,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_convPercent};
+FIELD const HoldTorque = 
+    {&quot;Hold Torque&quot;, pct, 2U, A4960_CONF3_RD, 0x00f0, &amp;convPercent};
 
-ITEM const A4960_HoldTime = 
-    {&quot;Hold Time&quot;, &quot;ms&quot;, 0U, A4960_CONF3_RD, 0x000f,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvHoldTime};
+FIELD const HoldTime = 
+    {&quot;Hold Time&quot;,ms, 0U, A4960_CONF3_RD, 0x000f, &amp;ConvHoldTime};
 
-ITEM const A4960_EndCommTime = 
-    {&quot;End Comm. Time&quot;, &quot;ms&quot;, 0U, A4960_CONF4_RD, 0x00f0,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvEndCommTime};
+FIELD const EndCommTime = 
+    {&quot;End Comm. Time&quot;,ms, 0U, A4960_CONF4_RD, 0x00f0, &amp;ConvEndCommTime};
 
-ITEM const A4960_StartCommTime = 
-    {&quot;Start Comm. Time&quot;, &quot;ms&quot;, 0U, A4960_CONF4_RD, 0x000f,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvStartCommTime};
+FIELD const StartCommTime = 
+    {&quot;Start Comm. Time&quot;,ms, 0U, A4960_CONF4_RD, 0x000f, &amp;ConvStartCommTime};
 
-ITEM const A4960_ForcedCommTorque = 
-    {&quot;Forced Comm. Ramp-up Torque&quot;, &quot;%&quot;, 2U, A4960_CONF5_RD, 0x00f0,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_convPercent};
+FIELD const ForcedCommTorque = 
+    {&quot;Forced Comm. Ramp-up Torque&quot;,pct, 2U, A4960_CONF5_RD, 0x00f0, &amp;convPercent};
 
-ITEM const A4960_RampRate = 
-    {&quot;Ramp Rate&quot;, &quot;ms&quot;, 1U, A4960_CONF5_RD, 0x000f,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_ConvRampRate};
+FIELD const RampRate = 
+    {&quot;Ramp Rate&quot;,ms, 1U, A4960_CONF5_RD, 0x000f, &amp;ConvRampRate};
 
 //Flags - all generic
 
-ITEM const A4960_VaFlag = 
-    {&quot;Bootcap A Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0100,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const VaFlag = 
+    {&quot;Bootcap A Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0100, &amp;getField};
 
-ITEM const A4960_VbFlag = 
-    {&quot;Bootcap B Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0080,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const VbFlag = 
+    {&quot;Bootcap B Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0080, &amp;getField};
 
-ITEM const A4960_VcFlag = 
-    {&quot;Bootcap C Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0040,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const VcFlag = 
+    {&quot;Bootcap C Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0040, &amp;getField};
 
-ITEM const A4960_AhFlag = 
-    {&quot;Phase A High-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0020,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const AhFlag = 
+    {&quot;Phase A High-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0020, &amp;getField};
 
-ITEM const A4960_AlFlag = 
-    {&quot;Phase A Low-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0010,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const AlFlag = 
+    {&quot;Phase A Low-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0010, &amp;getField};
 
-ITEM const A4960_BhFlag = 
-    {&quot;Phase B High-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0008,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const BhFlag = 
+    {&quot;Phase B High-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0008, &amp;getField};
 
-ITEM const A4960_BlFlag = 
-    {&quot;Phase B Low-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0004,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const BlFlag = 
+    {&quot;Phase B Low-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0004, &amp;getField};
 
-ITEM const A4960_ChFlag = 
-    {&quot;Phase C High-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0002,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const ChFlag = 
+    {&quot;Phase C High-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0002, &amp;getField};
 
-ITEM const A4960_ClFlag = 
-    {&quot;Phase C Low-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0001,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const ClFlag = 
+    {&quot;Phase C Low-Side Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0001, &amp;getField};
 
 //- Misc all generic
 
-ITEM const A4960_TorqueCtlMethod = 
+FIELD const TorqueCtlMethod = 
     {&quot;Torque Control Method&quot;, &quot;0 - Current, 1 - Duty Cycle&quot;, 0U, A4960_CONF3_RD, 0x0100,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+        &amp;getField};
 
-ITEM const A4960_EnableStopOnFail = 
-    {&quot;Stop on Fail&quot;,&quot;0 - Dis, 1- En&quot;, 0U, A4960_RUN_RD, 0x0040,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const EnableStopOnFail = 
+    {&quot;Stop on Fail&quot;, zen, 0U, A4960_RUN_RD, 0x0040, &amp;getField};
 
-ITEM const A4960_DiagOutput = 
+FIELD const DiagOutput = 
     {&quot;Diag Output&quot;,&quot;0 - Flt, 1 - LOS, 2 -VDS Thr, 3 - clock&quot;, 0U, A4960_RUN_RD, 0x0030,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+        &amp;getField};
 
-ITEM const A4960_RestartControl = 
-    {&quot;Restart Control&quot;,&quot;0 - Dis, 1 - En&quot;, 0U, A4960_RUN_RD, 0x0080,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+FIELD const RestartControl = 
+    {&quot;Restart Control&quot;, zen, 0U, A4960_RUN_RD, 0x0080, &amp;getField};
 
-ITEM const A4960_TwFlag = 
+FIELD const TwFlag = 
     {&quot;Temperature Warning Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0800,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+        &amp;getField};
 
-ITEM const A4960_TsFlag = 
+FIELD const TsFlag = 
     {&quot;Thermal Shutdown Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0400,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+        &amp;getField};
 
-ITEM const A4960_LosFlag = 
+FIELD const LosFlag = 
     {&quot;BEMF Sync. Loss Fault&quot;, zen, 0U, A4960_MASK_RD, 0x0200,
-        &amp;A4960_getField, &amp;A4960_setField, &amp;A4960_getField};
+        &amp;getField};
 
 
 //- PWM access
@@ -2072,30 +1868,6 @@ $define(BSP::HEE::HEE_init)
 
 $define(BSP::Tacho::Tacho_init)
 $define (BSP::BSP_init)
-
-#ifdef UNDEF
-/*--------------------------------------------------------------------------*/
-void BSP_init(void) {
-    RCONbits.SWDTEN = 0;                                /* disable Watchdog */
-
-    TRISA = 0x00;                                /* set LED pins as outputs */
-    PORTA = 0x00;                               /* set LEDs drive state low */
-    TRISB = 0x00;
-    PORTB = 0x00;
-    ANSA = 0x00;
-    ANSB = 0x00;
-
-    TACHO_TRIS = 1;    //tachometer input
-    DIAG_TRIS = 1;     //diag pin input
-
-    SPI_init();
-    PWM_init();
-    Tacho_init();
-    HEE_init();
-}
-
-#endif
-
 $define(BSP::QPn::QF_onStartup)
 $define(BSP::QPn::QF_onIdle)
 $define(BSP::QPn::Q_onAssert)
@@ -2140,32 +1912,32 @@ extern FIELD const Direction;
 extern FIELD const Run;
 
 //- Access to 'Startup' fields
-extern ITEM const A4960_HoldTorque;
-extern ITEM const A4960_HoldTime;
-extern ITEM const A4960_EndCommTime;
-extern ITEM const A4960_StartCommTime;
-extern ITEM const A4960_ForcedCommTorque;
-extern ITEM const A4960_RampRate;
+extern FIELD const HoldTorque;
+extern FIELD const HoldTime;
+extern FIELD const EndCommTime;
+extern FIELD const StartCommTime;
+extern FIELD const ForcedCommTorque;
+extern FIELD const RampRate;
 
 //- Access to 'Flags' fields
-extern ITEM const A4960_VaFlag;
-extern ITEM const A4960_VbFlag;
-extern ITEM const A4960_VcFlag;
-extern ITEM const A4960_AhFlag;
-extern ITEM const A4960_AlFlag;
-extern ITEM const A4960_BhFlag;
-extern ITEM const A4960_BlFlag;
-extern ITEM const A4960_ChFlag;
-extern ITEM const A4960_ClFlag;
+extern FIELD const VaFlag;
+extern FIELD const VbFlag;
+extern FIELD const VcFlag;
+extern FIELD const AhFlag;
+extern FIELD const AlFlag;
+extern FIELD const BhFlag;
+extern FIELD const BlFlag;
+extern FIELD const ChFlag;
+extern FIELD const ClFlag;
 
 //- Access to 'Misc' fields
-extern ITEM const A4960_TorqueCtlMethod;
-extern ITEM const A4960_EnableStopOnFail;
-extern ITEM const A4960_DiagOutput;
-extern ITEM const A4960_RestartControl;
-extern ITEM const A4960_TwFlag;
-extern ITEM const A4960_TsFlag;
-extern ITEM const A4960_LosFlag;
+extern FIELD const TorqueCtlMethod;
+extern FIELD const EnableStopOnFail;
+extern FIELD const DiagOutput;
+extern FIELD const RestartControl;
+extern FIELD const TwFlag;
+extern FIELD const TsFlag;
+extern FIELD const LosFlag;
 
 //- Access to PWM
 extern ITEM const PWM_Freq;
@@ -2188,24 +1960,14 @@ extern ITEM const PWM_Duty;
 
 /* Variables */
 //Serial console
-//__pack_upper_byte uint8_t* consoleBuf[CONSOLE_BUFSIZE];
 const char* consoleBuf[CONSOLE_BUFSIZE];
 uint8_t consoleHead;
 volatile uint8_t consoleTail;    //interrupt changes this
 
-
-
 static const char* const crlf = &quot;\r\n&quot;;
-
 static const char* const space = &quot; &quot;;
 
 /*-- Main Menu */
-//const char* mSetup[] = {&quot;Setup&quot;};
-
-//static const char* const mSetup = &quot;Setup&quot;;
-//const char* const mMess = &quot;Mess&quot;;
-//const char* const mTune = &quot;Tune&quot;;
-
 const char* menuMain[] = 
     { &quot;Setup&quot;, &quot;Mess&quot;, &quot;Tune&quot; };
 #define MENU_MAIN_CNT Q_DIM(menuMain)
@@ -2222,14 +1984,8 @@ const ITEM* const uiItems[] = {};
 #define UI_CNT Q_DIM(uiItems)
 
 /*- Mess Menu and accompanying menu item arrays */
-
-
 const char* const menuMess[] = {&quot;Limits&quot;,&quot;Run&quot;,&quot;Startup&quot;,&quot;Flags&quot;,&quot;Misc&quot;};
 #define MENU_MESS_CNT Q_DIM(menuMess)
-
-//const ITEM* const limitsItems[] = {&amp;A4960_CommBlankTime, &amp;A4960_BlankTime,
-//    &amp;A4960_DeadTime, &amp;A4960_CurrentSenseRefRatio, &amp;A4960_VdsThreshold};
-//#define LIMITS_CNT Q_DIM(limitsItems)
 
 const FIELD* const limitsFields[] = {&amp;CommBlankTime,&amp;BlankTime,&amp;DeadTime,
     &amp;CurrentSenseRefRatio, &amp;VdsThreshold};
@@ -2250,21 +2006,21 @@ const ITEM* const runItems[] =
 
 #endif
 
-const ITEM* const startupItems[] =
-    {&amp;A4960_HoldTorque, &amp;A4960_HoldTime, &amp;A4960_EndCommTime,
-     &amp;A4960_StartCommTime, &amp;A4960_ForcedCommTorque, &amp;A4960_RampRate};
-#define STARTUP_CNT Q_DIM(startupItems)
+const FIELD* const startupFields[] =
+    {&amp;HoldTorque, &amp;HoldTime, &amp;EndCommTime,
+     &amp;StartCommTime, &amp;ForcedCommTorque, &amp;RampRate};
+#define STARTUP_CNT Q_DIM(startupFields)
 
-const ITEM* const flagsItems[] = 
-    {&amp;A4960_VaFlag, &amp;A4960_VbFlag, &amp;A4960_VcFlag, &amp;A4960_AhFlag,
-     &amp;A4960_AlFlag, &amp;A4960_BhFlag, &amp;A4960_BlFlag, &amp;A4960_ChFlag,
-     &amp;A4960_ClFlag};
-#define FLAGS_CNT Q_DIM(flagsItems)
+const FIELD* const flagsFields[] = 
+    {&amp;VaFlag, &amp;VbFlag, &amp;VcFlag, &amp;AhFlag,
+     &amp;AlFlag, &amp;BhFlag, &amp;BlFlag, &amp;ChFlag,
+     &amp;ClFlag};
+#define FLAGS_CNT Q_DIM(flagsFields)
 
-const ITEM* const miscItems[] =
-    {&amp;A4960_TorqueCtlMethod, &amp;A4960_EnableStopOnFail, &amp;A4960_DiagOutput,
-     &amp;A4960_RestartControl, &amp;A4960_TwFlag, &amp;A4960_TsFlag, &amp;A4960_LosFlag};
-#define MISC_CNT Q_DIM(miscItems)
+const FIELD* const miscFields[] =
+    {&amp;TorqueCtlMethod, &amp;EnableStopOnFail, &amp;DiagOutput,
+     &amp;RestartControl, &amp;TwFlag, &amp;TsFlag, &amp;LosFlag};
+#define MISC_CNT Q_DIM(miscFields)
 
 const char* const menuTune[]={&quot;Tune&quot;,&quot;Tune&quot;};
 #define MENU_TUNE_CNT Q_DIM(menuTune)
