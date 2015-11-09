@@ -35,7 +35,8 @@
 #pragma config POSCMOD = HS, OSCIOFNC = CLKO, POSCFREQ = MS, FCKSM = CSECME
 #pragma config FWDTEN = OFF, WINDIS = OFF
 #pragma config BOREN=BOR0, RETCFG=OFF, PWRTEN = OFF, MCLRE=ON
-#pragma config ICS = PGx2
+//#pragma config ICS = PGx2
+#pragma config ICS = PGx1
 
 /* Local-scope objects -----------------------------------------------------*/
                              /* frequency of the oscillator for PIC24 */
@@ -44,7 +45,8 @@
 #define FCY_HZ                  (FOSC_HZ / 2.0)
 
                                 /* controlling the LED */
-#define LED_ON()                //(LATA |= (1U << 0))
+//LED on RB15
+#define LED_ON()                LATBbits.LATB15 = 1//(LATA |= (1U << 0))
 #define LED_OFF()               //(LATA &= ~(1U << 0))
 #define LED_TOGGLE()            //(LATA ^= (1U << 0))
 
