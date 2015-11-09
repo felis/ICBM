@@ -99,6 +99,16 @@ extern ITEM const PWM_Duty;
 #define ROLL_TOUT BSP_TICKS_PER_SEC/10   //whirling star animation
 #define STAT_TOUT BSP_TICKS_PER_SEC/5    //status line update rate
 
+
+//LED times
+#define RUN_ON_TIME 1
+#define RUN_OFF_TIME 100
+
+#define ALARM_ON_TIME 20
+#define ALARM_OFF_TIME 20
+
+
+
 /* Variables */
 //Serial console
 const char* consoleBuf[CONSOLE_BUFSIZE];
@@ -196,6 +206,48 @@ static QMState const Tacho_Process_s = {
     Q_ACTION_CAST(0)  /* no intitial tran. */
 };
 
+
+//en.wikipedia.org/wiki/Blinkenlights
+/*${AOs::Blinke} ...........................................................*/
+typedef struct Blinke {
+/* protected: */
+    QMsm super;
+
+/* private: */
+} Blinke;
+extern uint8_t Blinke_cnt;
+extern uint8_t Blinke_on_time;
+extern uint8_t Blinke_off_time;
+
+/* protected: */
+static QState Blinke_initial(Blinke * const me);
+static QState Blinke_DER_BLINKENLICHT  (Blinke * const me);
+static QMState const Blinke_DER_BLINKENLICHT_s = {
+    (QMState const *)0, /* superstate (top) */
+    Q_STATE_CAST(&Blinke_DER_BLINKENLICHT),
+    Q_ACTION_CAST(0), /* no entry action */
+    Q_ACTION_CAST(0), /* no exit action */
+    Q_ACTION_CAST(0)  /* no intitial tran. */
+};
+static QState Blinke_Off  (Blinke * const me);
+static QMState const Blinke_Off_s = {
+    &Blinke_DER_BLINKENLICHT_s, /* superstate */
+    Q_STATE_CAST(&Blinke_Off),
+    Q_ACTION_CAST(0), /* no entry action */
+    Q_ACTION_CAST(0), /* no exit action */
+    Q_ACTION_CAST(0)  /* no intitial tran. */
+};
+static QState Blinke_On  (Blinke * const me);
+static QState Blinke_On_e(Blinke * const me);
+static QState Blinke_On_x(Blinke * const me);
+static QMState const Blinke_On_s = {
+    &Blinke_DER_BLINKENLICHT_s, /* superstate */
+    Q_STATE_CAST(&Blinke_On),
+    Q_ACTION_CAST(&Blinke_On_e),
+    Q_ACTION_CAST(&Blinke_On_x),
+    Q_ACTION_CAST(0)  /* no intitial tran. */
+};
+
 /*${AOs::Console} ..........................................................*/
 typedef struct Console {
 /* protected: */
@@ -206,8 +258,9 @@ typedef struct Console {
     uint16_t rpm;
 
 /* public: */
-    Tacho tacho;
     uint16_t diag;
+    Tacho tacho;
+    Blinke blinke;
 } Console;
 
 /* private: */
@@ -218,13 +271,14 @@ static void Console_printNum(
     uint8_t point);
 static void Console_printWhirlingStar(void);
 static void Console_printMenuTitle(uint8_t count, const char* const* menu);
-static void Console_Tacho_ctor(Tacho* const me);
 static void Console_printMenuItems(Console * const me, FIELD** field, uint8_t cnt);
 static void Console_handleMenuItems(
     Console * const me,
     uint8_t key,
     FIELD** field,
     uint8_t cnt);
+static void Console_Tacho_ctor(Tacho* const me);
+static void Console_Blinke_ctor(Blinke* const me);
 
 /* protected: */
 static QState Console_initial(Console * const me);
@@ -358,9 +412,12 @@ Console AO_Console;
 void Console_ctor(void) {
     Console *me = &AO_Console;
     QMActive_ctor(&me->super, Q_STATE_CAST(&Console_initial));
-    //me->tacho = &l_tacho;
+
     Console_Tacho_ctor(&me->tacho);
     QMSM_INIT((QMsm*)&me->tacho);
+
+    Console_Blinke_ctor(&me->blinke);
+    QMSM_INIT((QMsm*)&me->blinke);
 
     /* Initialize console hardware */
 
@@ -435,7 +492,7 @@ static void Console_printNum(
         Console_printStr(*pStr++);
     }
 }
-/*${AOs::Console::printWhirlingSta~} .......................................*/
+/*${AOs::Console::printWhirlingStar} .......................................*/
 static void Console_printWhirlingStar(void) {
     #define IDX_MASK 3
     const char* const rollchar[4] = {"/","-","\\","|"};
@@ -468,10 +525,6 @@ static void Console_printMenuTitle(uint8_t count, const char* const* menu) {
     }//for...
 
     Console_printStr(crlf);
-}
-/*${AOs::Console::Tacho_ctor} ..............................................*/
-static void Console_Tacho_ctor(Tacho* const me) {
-    QMsm_ctor(&me->super, Q_STATE_CAST(&Tacho_initial));
 }
 /*${AOs::Console::printMenuItems} ..........................................*/
 static void Console_printMenuItems(Console * const me, FIELD** field, uint8_t cnt) {
@@ -564,6 +617,14 @@ static void Console_handleMenuItems(
     setField(tmpdata,&(*field[me->menuselect-1]));
     //field[me->menuselect-1]->set(tmpdata,&(*item[me->menuselect-1]));
 }
+/*${AOs::Console::Tacho_ctor} ..............................................*/
+static void Console_Tacho_ctor(Tacho* const me) {
+    QMsm_ctor(&me->super, Q_STATE_CAST(&Tacho_initial));
+}
+/*${AOs::Console::Blinke_ctor} .............................................*/
+static void Console_Blinke_ctor(Blinke* const me) {
+    QMsm_ctor(&me->super, Q_STATE_CAST(&Blinke_initial));
+}
 /*${AOs::Console::SM} ......................................................*/
 static QState Console_initial(Console * const me) {
     static struct {
@@ -641,7 +702,7 @@ static QState Console_Session(Console * const me) {
         }
         /* ${AOs::Console::SM::Session::Q_TIMEOUT} */
         case Q_TIMEOUT_SIG: {
-            const char* const diag_flags[] =
+            static const char* const diag_flags[] =
                 {"FF ","POR ","VR ","?? ","TW ","TS ","LOS ","VA ","VB ",
                 "VC ","AH ","AL ","BH ","BL ","CH ","CL "};
 
@@ -652,16 +713,6 @@ static QState Console_Session(Console * const me) {
 
             //run flags
             Console_printStr(" [ ");
-
-            //if(A4960_Run.get((struct item_t*)&A4960_Run)) {    //run flag up
-            //    Console_printStr("RUN ");
-            //}
-            //if(A4960_Brake.get((struct item_t*)&A4960_Brake)) {    //brake flag up
-            //    Console_printStr("BRK ");
-            //}
-            //if(A4960_Direction.get((struct item_t*)&A4960_Direction)) {//dir flag up
-            //    Console_printStr("DIR ");
-            //}
 
             if(getField((struct field_t*)&Run)) {    //run flag up
                Console_printStr("RUN ");
@@ -1559,6 +1610,158 @@ static QState Tacho_Process(Tacho * const me) {
             QACTIVE_POST_X((QActive*)&AO_Console, 1, RPM_SIG,
                 tachoLPS);    //send out RPM
             status_ = QM_HANDLED();
+            break;
+        }
+        default: {
+            status_ = QM_SUPER();
+            break;
+        }
+    }
+    return status_;
+}
+
+
+//en.wikipedia.org/wiki/Blinkenlights
+/*${AOs::Blinke} ...........................................................*/
+uint8_t Blinke_cnt;
+uint8_t Blinke_on_time;
+uint8_t Blinke_off_time;
+/*${AOs::Blinke::SM} .......................................................*/
+static QState Blinke_initial(Blinke * const me) {
+    static struct {
+        QMState const *target;
+        QActionHandler act[2];
+    } const tatbl_ = { /* transition-action table */
+        &Blinke_On_s, /* target state */
+        {
+            Q_ACTION_CAST(&Blinke_On_e), /* entry */
+            Q_ACTION_CAST(0) /* zero terminator */
+        }
+    };
+    /* ${AOs::Blinke::SM::initial} */
+    Blinke_on_time = RUN_ON_TIME;
+    Blinke_off_time = RUN_OFF_TIME;
+    return QM_TRAN_INIT(&tatbl_);
+}
+/*${AOs::Blinke::SM::DER_BLINKENLICHT} .....................................*/
+/* ${AOs::Blinke::SM::DER_BLINKENLICHT} */
+static QState Blinke_DER_BLINKENLICHT(Blinke * const me) {
+    QState status_;
+    switch (Q_SIG(me)) {
+        /* ${AOs::Blinke::SM::DER_BLINKENLICHT::ALARM} */
+        case ALARM_SIG: {
+            static struct {
+                QMState const *target;
+                QActionHandler act[2];
+            } const tatbl_ = { /* transition-action table */
+                &Blinke_On_s, /* target state */
+                {
+                    Q_ACTION_CAST(&Blinke_On_e), /* entry */
+                    Q_ACTION_CAST(0) /* zero terminator */
+                }
+            };
+            Blinke_on_time = ALARM_ON_TIME;
+            Blinke_off_time = ALARM_OFF_TIME;
+            status_ = QM_TRAN(&tatbl_);
+            break;
+        }
+        /* ${AOs::Blinke::SM::DER_BLINKENLICHT::RUN} */
+        case RUN_SIG: {
+            static struct {
+                QMState const *target;
+                QActionHandler act[2];
+            } const tatbl_ = { /* transition-action table */
+                &Blinke_On_s, /* target state */
+                {
+                    Q_ACTION_CAST(&Blinke_On_e), /* entry */
+                    Q_ACTION_CAST(0) /* zero terminator */
+                }
+            };
+            Blinke_on_time = RUN_ON_TIME;
+            Blinke_off_time = RUN_OFF_TIME;
+            status_ = QM_TRAN(&tatbl_);
+            break;
+        }
+        default: {
+            status_ = QM_SUPER();
+            break;
+        }
+    }
+    return status_;
+}
+/*${AOs::Blinke::SM::DER_BLINKENLICHT::Off} ................................*/
+/* ${AOs::Blinke::SM::DER_BLINKENLICHT::Off} */
+static QState Blinke_Off(Blinke * const me) {
+    QState status_;
+    switch (Q_SIG(me)) {
+        /* ${AOs::Blinke::SM::DER_BLINKENLICHT::Off::BLINK} */
+        case BLINK_SIG: {
+            Blinke_cnt--;
+            /* ${AOs::Blinke::SM::DER_BLINKENLICHT::Off::BLINK::[Blinke_cnt==0]} */
+            if (Blinke_cnt == 0) {
+                static struct {
+                    QMState const *target;
+                    QActionHandler act[2];
+                } const tatbl_ = { /* transition-action table */
+                    &Blinke_On_s, /* target state */
+                    {
+                        Q_ACTION_CAST(&Blinke_On_e), /* entry */
+                        Q_ACTION_CAST(0) /* zero terminator */
+                    }
+                };
+                status_ = QM_TRAN(&tatbl_);
+            }
+            else {
+                status_ = QM_UNHANDLED();
+            }
+            break;
+        }
+        default: {
+            status_ = QM_SUPER();
+            break;
+        }
+    }
+    return status_;
+}
+/*${AOs::Blinke::SM::DER_BLINKENLICHT::On} .................................*/
+/* ${AOs::Blinke::SM::DER_BLINKENLICHT::On} */
+static QState Blinke_On_e(Blinke * const me) {
+    LED_ON();
+    Blinke_cnt = Blinke_on_time;
+    (void)me; /* avoid compiler warning in case 'me' is not used */
+    return QM_ENTRY(&Blinke_On_s);
+}
+/* ${AOs::Blinke::SM::DER_BLINKENLICHT::On} */
+static QState Blinke_On_x(Blinke * const me) {
+    LED_OFF();
+    Blinke_cnt = Blinke_off_time;
+    (void)me; /* avoid compiler warning in case 'me' is not used */
+    return QM_EXIT(&Blinke_On_s);
+}
+/* ${AOs::Blinke::SM::DER_BLINKENLICHT::On} */
+static QState Blinke_On(Blinke * const me) {
+    QState status_;
+    switch (Q_SIG(me)) {
+        /* ${AOs::Blinke::SM::DER_BLINKENLICHT::On::BLINK} */
+        case BLINK_SIG: {
+            Blinke_cnt--;
+            /* ${AOs::Blinke::SM::DER_BLINKENLICHT::On::BLINK::[Blinke_cnt==0]} */
+            if (Blinke_cnt == 0) {
+                static struct {
+                    QMState const *target;
+                    QActionHandler act[2];
+                } const tatbl_ = { /* transition-action table */
+                    &Blinke_Off_s, /* target state */
+                    {
+                        Q_ACTION_CAST(&Blinke_On_x), /* exit */
+                        Q_ACTION_CAST(0) /* zero terminator */
+                    }
+                };
+                status_ = QM_TRAN(&tatbl_);
+            }
+            else {
+                status_ = QM_UNHANDLED();
+            }
             break;
         }
         default: {

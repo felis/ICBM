@@ -44,14 +44,11 @@
                                        /* instruction cycle clock frequency */
 #define FCY_HZ                  (FOSC_HZ / 2.0)
 
-                                /* controlling the LED */
-//LED on RB15
-#define LED_ON()                LATBbits.LATB15 = 1//(LATA |= (1U << 0))
-#define LED_OFF()               //(LATA &= ~(1U << 0))
-#define LED_TOGGLE()            //(LATA ^= (1U << 0))
+
 
 /* Peripherals                                -----------------------------*/
 
+//pins that will eventually become inputs
 #define MISO_TRIS _TRISA7
 #define TACHO_TRIS _TRISB9
 #define DIAG_TRIS _TRISB3
@@ -364,7 +361,7 @@ static uint16_t convPercent(FIELD* field) {
     return((getField(field) + 1)*625U);
 }
 //- Limits
-/*${BSP::A4960::Limits::ConvCommBlankTim~} .................................*/
+/*${BSP::A4960::Limits::ConvCommBlankTime} .................................*/
 static uint16_t ConvCommBlankTime(FIELD* field) {
     const uint16_t const blanktimes[] = {50U,100U,400U,1000U};
 
@@ -470,7 +467,7 @@ static uint16_t ConvHoldTime(FIELD* field) {
 static uint16_t ConvEndCommTime(FIELD* field) {
     return((getField(field) + 1)*2U); //ms, DS p.28
 }
-/*${BSP::A4960::Startup::ConvStartCommTim~} ................................*/
+/*${BSP::A4960::Startup::ConvStartCommTime} ................................*/
 static uint16_t ConvStartCommTime(FIELD* field) {
     return((getField(field) + 1)*8U); //ms, DS p.28
 }
@@ -675,6 +672,9 @@ void BSP_init(void) {
     PWM_init();
     Tacho_init();
     HEE_init();
+
+    LED_ON();
+
 }
 /*${BSP::QPn::QF_onStartup} ................................................*/
 void QF_onStartup(void) {

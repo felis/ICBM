@@ -29,9 +29,12 @@
                                                /* the system tick rate [Hz] */
 #define BSP_TICKS_PER_SEC    100UL
 
+                                /* controlling the LED */
+//LED on RB15
+#define LED_ON()                LATBbits.LATB15 = 0
+#define LED_OFF()               LATBbits.LATB15 = 1
 
 /* A4960 constants */
-
 #define A4960_CONF0_RD 0
 #define A4960_CONF0_WR 1
 #define A4960_CONF1_RD 2
