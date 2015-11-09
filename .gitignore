@@ -1,4 +1,6 @@
 .gitignore~
+Makefile
+nbproject/
 src/nbproject/
 src/build/
 src/dist/
