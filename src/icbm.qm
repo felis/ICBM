@@ -1587,10 +1587,9 @@ typedef struct field_t {
 
 
 
-void BSP_init(void);
+//void BSP_init(void);
 
-//uint16_t getField( FIELD* field );                  //get A4960 field
-//uint16_t setField( uint16_t val, FIELD* field );    //set A4960 field
+$declare (BSP::BSP_init)
 $declare(BSP::A4960::Common::A4960_xfer)
 $declare(BSP::A4960::Common::getField)
 $declare(BSP::A4960::Common::setField)
