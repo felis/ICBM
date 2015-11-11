@@ -196,7 +196,7 @@ setField(tmpdata,&amp;(*field[me-&gt;menuselect-1]));
    <statechart>
     <initial target="../1/9">
      <action>QActive_armX((QActive*)me, 0U, ROLL_TOUT);</action>
-     <initial_glyph conn="8,2,4,0,33">
+     <initial_glyph conn="8,2,5,0,1,33">
       <action box="0,-2,10,2"/>
      </initial_glyph>
     </initial>
@@ -204,7 +204,7 @@ setField(tmpdata,&amp;(*field[me-&gt;menuselect-1]));
      <entry>//QActive_armX((QActive*)me, 1U, TACH_TOUT);</entry>
      <tran trig="WCOL">
       <action>Console_printStr(&quot;\r\nA4960 SPI Write collision&quot;);</action>
-      <tran_glyph conn="3,67,3,-1,7">
+      <tran_glyph conn="4,67,3,-1,7">
        <action box="0,-2,7,2"/>
       </tran_glyph>
      </tran>
@@ -221,14 +221,16 @@ uint8_t i = getField((struct field_t*)&amp;TwFlag);
 me-&gt;diag = setField(i, (struct field_t*)&amp;TwFlag);
 
 Console_printStr(&quot;\r\nA4960 fault&quot;);</action>
-      <tran_glyph conn="3,70,3,-1,3">
+      <tran_glyph conn="4,70,3,-1,3">
        <action box="0,-2,4,2"/>
       </tran_glyph>
      </tran>
-     <tran trig="TIME_TICK">
+     <tran trig="TICK">
       <action brief="dispatch">Q_SIG(&amp;me-&gt;tacho) = Q_SIG(me);
-QMSM_DISPATCH((QMsm*)&amp;me-&gt;tacho);</action>
-      <tran_glyph conn="3,126,3,-1,22">
+QMSM_DISPATCH((QMsm*)&amp;me-&gt;tacho);
+Q_SIG(&amp;me-&gt;blinke) = Q_SIG(me);
+QMSM_DISPATCH((QMsm*)&amp;me-&gt;blinke);</action>
+      <tran_glyph conn="4,126,3,-1,22">
        <action box="0,-2,19,2"/>
       </tran_glyph>
      </tran>
@@ -240,13 +242,13 @@ QMSM_DISPATCH((QMsm*)&amp;me-&gt;tacho);
 
 //QActive_disarmX((QActive*)me, 3U);
 //QActive_armX((QActive*)me, 3U, TACH_TOUT);</action>
-      <tran_glyph conn="3,122,3,-1,22">
+      <tran_glyph conn="4,122,3,-1,22">
        <action box="0,-2,13,2"/>
       </tran_glyph>
      </tran>
      <tran trig="RPM">
       <action>me-&gt;rpm = Q_PAR(me);</action>
-      <tran_glyph conn="3,79,3,-1,4">
+      <tran_glyph conn="4,79,3,-1,4">
        <action box="0,-2,5,2"/>
       </tran_glyph>
      </tran>
@@ -275,23 +277,24 @@ if(getField((struct field_t*)&amp;Direction)) {//dir flag up
 
 Console_printStr(&quot;]&quot;);
 
-//diagnostic flags
+//diagnostic flags. I need to write to a register to get those
+uint16_t tmpdata = A4960_xfer(A4960_RUN_RD,0U);         //read RUN register
+uint16_t tmpdiag = A4960_xfer(A4960_RUN_WR,tmpdata);    //read diagnostic
+
 Console_printStr(&quot; [ &quot;);
 uint8_t i;
-uint16_t tmp = me-&gt;diag;
 
 for(i = 0; i &lt; 16; i++) {
-    if(tmp &amp; 0x8000) {    //print flag if set
+    if(tmpdiag &amp; 0x8000) {    //print flag if set
         Console_printStr(diag_flags[i]);
     }
-    tmp &lt;&lt;=1;
+    tmpdiag &lt;&lt;=1;
 }
 Console_printStr(&quot;]&quot;);
 
-
 Console_printStr(&quot;   &quot;);
 QActive_armX(&amp;me-&gt;super, 0U, STAT_TOUT);</action>
-      <tran_glyph conn="3,64,3,-1,19">
+      <tran_glyph conn="4,64,3,-1,19">
        <action box="0,-2,20,2"/>
       </tran_glyph>
      </tran>
@@ -306,13 +309,13 @@ setField(1, (struct field_t*)&amp;Run);
 //A4960_Run-&gt;name
 
 //Console_printStr(A4960_Run.name);</action>
-      <tran_glyph conn="3,73,3,-1,9">
+      <tran_glyph conn="4,73,3,-1,9">
        <action box="0,-2,10,2"/>
       </tran_glyph>
      </tran>
      <tran trig="RBUT_RELEASE">
       <action>Console_printStr(&quot;\r\n\r\nRun Button Released\r\n&quot;);</action>
-      <tran_glyph conn="3,76,3,-1,11">
+      <tran_glyph conn="4,76,3,-1,11">
        <action box="0,-2,11,2"/>
       </tran_glyph>
      </tran>
@@ -328,27 +331,27 @@ Console_printMenuTitle(MENU_MAIN_CNT, menuMain);</entry>
 //U1TXREG = 'A';</action>
        <choice target="../../../10">
         <guard brief="1">(uint8_t)(Q_PAR(me)) == '1'</guard>
-        <choice_glyph conn="29,20,5,3,31">
+        <choice_glyph conn="30,20,5,3,31">
          <action box="2,-2,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../11">
         <guard brief="2">(uint8_t)(Q_PAR(me)) == '2'</guard>
-        <choice_glyph conn="29,20,4,3,10,4">
+        <choice_glyph conn="30,20,4,3,10,4">
          <action box="0,7,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../12">
         <guard brief="3">(uint8_t)(Q_PAR(me)) == '3'</guard>
-        <choice_glyph conn="29,20,4,3,28,3">
+        <choice_glyph conn="30,20,4,3,28,3">
          <action box="1,18,4,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="12,20,5,-1,17">
+       <tran_glyph conn="13,20,5,-1,17">
         <action box="0,-2,9,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="12,13,13,12">
+      <state_glyph node="13,13,13,12">
        <entry box="1,2,6,2"/>
        <exit box="1,4,6,2"/>
       </state_glyph>
@@ -360,7 +363,7 @@ Console_printMenuTitle(MENU_MAIN_CNT, menuMain);</entry>
       <tran trig="Q_TIMEOUT">
        <action>QActive_armX(&amp;me-&gt;super, 0U, ROLL_TOUT);
 Console_printWhirlingStar();</action>
-       <tran_glyph conn="6,42,3,-1,8">
+       <tran_glyph conn="7,42,3,-1,8">
         <action box="0,-2,10,2"/>
        </tran_glyph>
       </tran>
@@ -374,11 +377,11 @@ Console_printStr(__TIME__);
 Console_printStr(&quot; using Microchip XC16 C compiler ver.&quot;);
 Console_printNum(__XC16_VERSION__, 10,0U);
 Console_printStr(&quot;\r\n\n&quot;);</action>
-       <tran_glyph conn="6,46,3,2,11,-21">
+       <tran_glyph conn="7,46,3,2,11,-21">
         <action box="0,-2,10,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="6,35,16,18">
+      <state_glyph node="7,35,16,18">
        <entry box="1,2,6,2"/>
        <exit box="1,4,6,2"/>
       </state_glyph>
@@ -390,33 +393,33 @@ Console_printMenuTitle(MENU_SETUP_CNT, menuSetup);</entry>
        <action>Console_printStr(&quot;\r\n&quot;);</action>
        <choice target="../..">
         <guard>else</guard>
-        <choice_glyph conn="72,25,5,2,-8,-3">
+        <choice_glyph conn="73,25,5,2,-8,-3">
          <action box="-6,-2,6,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../8">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="72,25,4,0,-14,-50,2">
+        <choice_glyph conn="73,25,4,0,-14,-50,2">
          <action box="-4,-16,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../18">
         <guard brief="1">(uint8_t)(Q_PAR(me)) == '1'</guard>
-        <choice_glyph conn="72,25,5,3,8">
+        <choice_glyph conn="73,25,5,3,8">
          <action box="1,-2,10,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../19">
         <guard brief="2">(uint8_t)(Q_PAR(me)) == '2'</guard>
-        <choice_glyph conn="72,25,4,3,12,8">
+        <choice_glyph conn="73,25,4,3,12,8">
          <action box="0,10,10,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="60,20,3,-1,12,5">
+       <tran_glyph conn="61,20,3,-1,12,5">
         <action box="0,-2,10,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="60,13,8,9">
+      <state_glyph node="61,13,8,9">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
@@ -428,51 +431,51 @@ Console_printMenuTitle(MENU_MESS_CNT, menuMess);</entry>
        <action>Console_printStr(&quot;\r\n&quot;);</action>
        <choice target="../../../13">
         <guard brief="1">(uint8_t)(Q_PAR(me)) == '1'</guard>
-        <choice_glyph conn="42,35,5,3,8">
+        <choice_glyph conn="43,35,5,3,8">
          <action box="1,-2,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../14">
         <guard brief="2">(uint8_t)(Q_PAR(me)) == '2'</guard>
-        <choice_glyph conn="42,35,4,3,10,8">
+        <choice_glyph conn="43,35,4,3,10,8">
          <action box="1,8,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../15">
         <guard brief="3">(uint8_t)(Q_PAR(me)) == '3'</guard>
-        <choice_glyph conn="42,35,4,3,22,8">
+        <choice_glyph conn="43,35,4,3,22,8">
          <action box="1,20,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../17">
         <guard brief="4">(uint8_t)(Q_PAR(me)) == '4'</guard>
-        <choice_glyph conn="42,35,4,3,34,8">
+        <choice_glyph conn="43,35,4,3,34,8">
          <action box="1,32,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../16">
         <guard brief="5">(uint8_t)(Q_PAR(me)) == '5'</guard>
-        <choice_glyph conn="42,35,4,3,46,8">
+        <choice_glyph conn="43,35,4,3,46,8">
          <action box="1,44,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../../../8">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="42,35,5,2,-20,-10">
+        <choice_glyph conn="43,35,5,2,-20,-10">
          <action box="-10,-2,4,2"/>
         </choice_glyph>
        </choice>
        <choice target="../..">
         <guard>else</guard>
-        <choice_glyph conn="42,35,5,2,-7,-3">
+        <choice_glyph conn="43,35,5,2,-7,-3">
          <action box="-6,-2,6,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="33,30,3,-1,9,5">
+       <tran_glyph conn="34,30,3,-1,9,5">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="33,22,8,10">
+      <state_glyph node="34,22,8,10">
        <entry box="1,2,4,2"/>
        <exit box="1,4,4,2"/>
       </state_glyph>
@@ -480,7 +483,7 @@ Console_printMenuTitle(MENU_MESS_CNT, menuMess);</entry>
      <state name="Tune">
       <entry>Console_printStr(&quot;\r\nTune Menu:&quot;);
 Console_printMenuTitle(MENU_TUNE_CNT, menuTune);</entry>
-      <state_glyph node="32,42,9,9">
+      <state_glyph node="33,42,9,9">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
@@ -491,7 +494,7 @@ Console_printMenuItems(me, (FIELD**)limitsFields, LIMITS_CNT);</entry>
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="58,35,5,1,5,-9,-22">
+        <choice_glyph conn="59,35,5,1,5,-9,-22">
          <action box="2,-2,4,2"/>
         </choice_glyph>
        </choice>
@@ -502,15 +505,15 @@ Console_printMenuItems(me, (FIELD**)limitsFields, LIMITS_CNT);</entry>
 
 Console_handleMenuItems
     (me,(uint8_t)Q_PAR(me),(FIELD**)limitsFields, LIMITS_CNT);</action>
-        <choice_glyph conn="58,35,4,3,-3,-8">
+        <choice_glyph conn="59,35,4,3,-3,-8">
          <action box="-4,-5,4,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="50,35,3,-1,8">
+       <tran_glyph conn="51,35,3,-1,8">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="50,27,10,11">
+      <state_glyph node="51,27,10,11">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
@@ -520,7 +523,7 @@ Console_handleMenuItems
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="58,45,5,1,5,-19,-22">
+        <choice_glyph conn="59,45,5,1,5,-19,-22">
          <action box="2,-2,4,2"/>
         </choice_glyph>
        </choice>
@@ -528,15 +531,15 @@ Console_handleMenuItems
         <guard>else</guard>
         <action>Console_handleMenuItems
     (me, (uint8_t)Q_PAR(me), (FIELD**)runFields, RUN_CNT);</action>
-        <choice_glyph conn="58,45,4,3,3,-8">
+        <choice_glyph conn="59,45,4,3,3,-8">
          <action box="-6,1,4,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="50,45,3,-1,8">
+       <tran_glyph conn="51,45,3,-1,8">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="50,39,10,11">
+      <state_glyph node="51,39,10,11">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
@@ -546,7 +549,7 @@ Console_handleMenuItems
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="58,57,5,1,5,-31,-22">
+        <choice_glyph conn="59,57,5,1,5,-31,-22">
          <action box="2,-2,4,2"/>
         </choice_glyph>
        </choice>
@@ -555,15 +558,15 @@ Console_handleMenuItems
         <action>Console_handleMenuItems
     (me, (uint8_t)Q_PAR(me), (FIELD**)startupFields,
     STARTUP_CNT);</action>
-        <choice_glyph conn="58,57,4,3,3,-8">
+        <choice_glyph conn="59,57,4,3,3,-8">
          <action box="-6,1,4,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="50,57,3,-1,8">
+       <tran_glyph conn="51,57,3,-1,8">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="50,51,10,11">
+      <state_glyph node="51,51,10,11">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
@@ -574,7 +577,7 @@ Console_handleMenuItems
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="58,81,5,1,5,-55,-22">
+        <choice_glyph conn="59,81,5,1,5,-55,-22">
          <action box="2,-2,4,2"/>
         </choice_glyph>
        </choice>
@@ -583,15 +586,15 @@ Console_handleMenuItems
         <action>Console_handleMenuItems
     (me, (uint8_t)Q_PAR(me), (FIELD**)miscFields,
     MISC_CNT);</action>
-        <choice_glyph conn="58,81,4,3,3,-8">
+        <choice_glyph conn="59,81,4,3,3,-8">
          <action box="-6,1,4,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="50,81,3,-1,8">
+       <tran_glyph conn="51,81,3,-1,8">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="50,75,10,11">
+      <state_glyph node="51,75,10,11">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
@@ -603,7 +606,7 @@ Console_printMenuItems
       <tran trig="KBD_KEY">
        <choice target="../../../11">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="58,69,5,1,5,-43,-22">
+        <choice_glyph conn="59,69,5,1,5,-43,-22">
          <action box="2,-2,4,2"/>
         </choice_glyph>
        </choice>
@@ -612,15 +615,15 @@ Console_printMenuItems
         <action>Console_handleMenuItems
     (me, (uint8_t)Q_PAR(me), (FIELD**)flagsFields,
     FLAGS_CNT);</action>
-        <choice_glyph conn="58,69,4,3,3,-8">
+        <choice_glyph conn="59,69,4,3,3,-8">
          <action box="-6,1,4,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="50,69,3,-1,8">
+       <tran_glyph conn="51,69,3,-1,8">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="50,63,10,11">
+      <state_glyph node="51,63,10,11">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
@@ -629,7 +632,7 @@ Console_printMenuItems
       <tran trig="KBD_KEY">
        <choice target="../../../10">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="88,25,5,1,8,-8,-28">
+        <choice_glyph conn="89,25,5,1,8,-8,-28">
          <action box="4,-2,4,2"/>
         </choice_glyph>
        </choice>
@@ -637,15 +640,15 @@ Console_printMenuItems
         <guard>else</guard>
         <action>//Console_handleItems
 //    (me,(uint8_t)Q_PAR(me),(ITEM**)controlItems, CONTROL_CNT);</action>
-        <choice_glyph conn="88,25,4,3,3,-8">
+        <choice_glyph conn="89,25,4,3,3,-8">
          <action box="-5,1,4,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="80,25,3,-1,8">
+       <tran_glyph conn="81,25,3,-1,8">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="80,19,11,11">
+      <state_glyph node="81,19,11,11">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
@@ -654,7 +657,7 @@ Console_printMenuItems
       <tran trig="KBD_KEY">
        <choice target="../../../10">
         <guard brief="0">(uint8_t)(Q_PAR(me)) == '0'</guard>
-        <choice_glyph conn="87,37,5,1,9,-20,-28">
+        <choice_glyph conn="88,37,5,1,9,-20,-28">
          <action box="5,-2,4,2"/>
         </choice_glyph>
        </choice>
@@ -662,19 +665,19 @@ Console_printMenuItems
         <guard>else</guard>
         <action>//Console_handleItems
 //    (me,(uint8_t)Q_PAR(me),(ITEM**)uiItems, UI_CNT);</action>
-        <choice_glyph conn="87,37,4,3,3,-7">
+        <choice_glyph conn="88,37,4,3,3,-7">
          <action box="-5,1,4,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="80,37,3,-1,7">
+       <tran_glyph conn="81,37,3,-1,7">
         <action box="0,-2,8,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="80,31,11,11">
+      <state_glyph node="81,31,11,11">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
-     <state_glyph node="3,5,96,132">
+     <state_glyph node="4,5,96,132">
       <entry box="1,2,6,2"/>
      </state_glyph>
     </state>
@@ -699,7 +702,7 @@ in 0.5 sec., otherwise collects and processes tach data.</documentation>
        <action box="0,-2,5,2"/>
       </tran_glyph>
      </tran>
-     <tran trig="TIME_TICK">
+     <tran trig="TICK">
       <tran_glyph conn="16,16,3,-1,13">
        <action box="0,-2,13,2"/>
       </tran_glyph>
@@ -709,7 +712,7 @@ in 0.5 sec., otherwise collects and processes tach data.</documentation>
      </state_glyph>
     </state>
     <state name="Process">
-     <tran trig="TIME_TICK">
+     <tran trig="TICK">
       <choice target="../../../1">
        <guard brief=" ">me-&gt;cnt-- == 0</guard>
        <choice_glyph conn="23,33,5,3,-11,-17,4">
@@ -752,11 +755,11 @@ IST NICHT FÜR GEWERKEN BEI DUMMKOPFEN. DER RUBBERNECKEN SIGHTSEEREN KEEPEN DAS 
 ZO RELAXEN UND WATSCHEN DER BLINKENLICHTEN.
 
 For more information refer to https://en.wikipedia.org/wiki/Blinkenlights</documentation>
-   <attribute name="cnt" type="uint8_t" visibility="0x02" properties="0x01">
+   <attribute name="cnt" type="uint16_t" visibility="0x02" properties="0x01">
     <documentation>counter used in LED timing</documentation>
    </attribute>
    <attribute name="on_time" type="uint8_t" visibility="0x02" properties="0x01"/>
-   <attribute name="off_time" type="uint8_t" visibility="0x02" properties="0x01"/>
+   <attribute name="off_time" type="uint16_t" visibility="0x02" properties="0x01"/>
    <statechart>
     <initial target="../1/3">
      <action>Blinke_on_time = RUN_ON_TIME;
@@ -781,7 +784,7 @@ Blinke_off_time = RUN_OFF_TIME;</action>
       </tran_glyph>
      </tran>
      <state name="Off">
-      <tran trig="BLINK">
+      <tran trig="TICK">
        <action>Blinke_cnt--;</action>
        <choice target="../../../3">
         <guard>Blinke_cnt == 0</guard>
@@ -800,7 +803,7 @@ Blinke_off_time = RUN_OFF_TIME;</action>
 Blinke_cnt = Blinke_on_time;</entry>
       <exit brief="LED_OFF">LED_OFF();
 Blinke_cnt = Blinke_off_time;</exit>
-      <tran trig="BLINK">
+      <tran trig="TICK">
        <action>Blinke_cnt--;</action>
        <choice target="../../../2">
         <guard>Blinke_cnt == 0</guard>
@@ -928,7 +931,7 @@ uint8_t btn = RBUT_PIN;          /* read the push button state */
 _T1IF = 0;                              /* clear Timer 1 interrupt flag */
 
 QACTIVE_POST_X_ISR((QActive*)&amp;AO_Console, 1,
-    TIME_TICK_SIG, 0U);
+    TICK_SIG, 0U);
 
 QF_tickISR();                /* handle all armed time events in QF-nano */</code>
    </operation>
@@ -984,8 +987,8 @@ _T1IE = 1;                              /* enable interrupt for Timer 1 */
 T1CONbits.TON = 1;                                     /* start Timer 1 */
 
 /* Enable peripheral interrupts as late as possible */
-_CCT2IE = 1;    //tacho timer
-_CCP2IE = 1;    //tacho capture
+_CCT3IE = 1;    //tacho timer
+_CCP3IE = 1;    //tacho capture
 _U1RXIE = 1;                                     /* Console on UART1 Rx */
 _NVMIE = 1;            //EEPROM</code>
    </operation>
@@ -1026,14 +1029,15 @@ for (;;) {
   <package name="A4960" stereotype="0x02">
    <package name="Common" stereotype="0x02">
     <operation name="SPI_init" type="void" visibility="0x02" properties="0x00">
-     <documentation>mode 0: CKP = 0; CKE = 1;</documentation>
-     <code>SSP2STATbits.CKE = 1;
-SSP2CON1bits.SSPM = 0b1010;
-SSP2ADD = 0x0f;    //1 MHz SPI clock
-SSP2CON1bits.SSPEN = 1; //enable SPI
+     <documentation>mode 0: CKP = 0; CKE = 1;
+SPI1 used</documentation>
+     <code>SSP1STATbits.CKE = 1;
+SSP1CON1bits.SSPM = 0b1010;
+SSP1ADD = 0x0f;    //1 MHz SPI clock
+SSP1CON1bits.SSPEN = 1; //enable SPI
 MISO_TRIS = 1;    //set MISO line to input</code>
     </operation>
-    <operation name="A4960_xfer" type="uint16_t" visibility="0x02" properties="0x00">
+    <operation name="A4960_xfer" type="uint16_t" visibility="0x00" properties="0x00">
      <documentation>read/write A4960 config register. May utilize PIC MSSP-specific double-buffering</documentation>
      <parameter name="reg" type="uint8_t"/>
      <parameter name="data" type="uint16_t"/>
@@ -1041,28 +1045,28 @@ MISO_TRIS = 1;    //set MISO line to input</code>
 
 uint16_t tmpdata;
 
-SSP2BUF = ((reg &lt;&lt; 4) | (data &gt;&gt; 8));    //send upper byte
-while(SSP2STATbits.BF == 0);    //wait till end of xfer
+SSP1BUF = ((reg &lt;&lt; 4) | (data &gt;&gt; 8));    //send upper byte
+while(SSP1STATbits.BF == 0);    //wait till end of xfer
 
-tmpdata = SSP2BUF;
+tmpdata = SSP1BUF;
 
 if(tmpdata &amp; 0x80) {    //A4960 fault
     QACTIVE_POST_X((QActive*)&amp;AO_Console, 1, FF_SIG,0U);
 };
 
-SSP2BUF = data &amp; 0xff;        //send lower byte
+SSP1BUF = data &amp; 0xff;        //send lower byte
 
 tmpdata = tmpdata &lt;&lt; 8;
-while(SSP2STATbits.BF == 0);    //wait till end of xfer
+while(SSP1STATbits.BF == 0);    //wait till end of xfer
 
-tmpdata = (tmpdata | SSP2BUF);
+tmpdata = (tmpdata | SSP1BUF);
 
 A4960_CS_PIN = 1;
 
 /* Look out for events */
 
-if(SSP2CON1bits.WCOL == 1) {    //write collision
-    SSP2CON1bits.WCOL = 0;        //clear
+if(SSP1CON1bits.WCOL == 1) {    //write collision
+    SSP1CON1bits.WCOL = 0;        //clear
     QACTIVE_POST_X((QActive*)&amp;AO_Console, 1, WCOL_SIG,0U);
 }
 
@@ -1178,24 +1182,26 @@ return((tmpdata &lt; 3) ? 100U : tmpdata*50U);</code>
   </package>
   <package name="PWM" stereotype="0x02">
    <operation name="PWM_init" type="void" visibility="0x02" properties="0x00">
-    <code>CCP1CON1Lbits.CCSEL = 0;    //mode
-CCP1CON1Lbits.MOD = 0b0101;
+    <documentation>OC5</documentation>
+    <code>CCP5CON1Lbits.CCSEL = 0;    //mode
+CCP5CON1Lbits.MOD = 0b0101;
 
-CCP1CON1Lbits.TMR32 = 0;    //timebase
-CCP1CON1Lbits.TMRSYNC = 0;
-CCP1CON1Lbits.CLKSEL = 0b000;
-CCP1CON1Lbits.TMRPS = 0b00;
-CCP1CON1Hbits.TRIGEN = 0;
-CCP1CON1Hbits.SYNC = 0b00000;
+CCP5CON1Lbits.TMR32 = 0;    //timebase
+CCP5CON1Lbits.TMRSYNC = 0;
+CCP5CON1Lbits.CLKSEL = 0b000;
+CCP5CON1Lbits.TMRPS = 0b00;
+CCP5CON1Hbits.TRIGEN = 0;
+CCP5CON1Hbits.SYNC = 0b00000;
 
-CCP1CON2Hbits.OCBEN = 1;    //enable PWM on the output
-CCP1CON3Hbits.OUTM = 0b000;
-CCP1CON3Hbits.POLBDF = 0;    //active high
-CCP1TMRL = 0x0000;
-CCP1PRL = 3200U;
-CCP1RA = 0x000;
-CCP1RB = 0x001ff;
-CCP1CON1Lbits.CCPON = 1;</code>
+CCP5CON2Hbits.OCAEN = 1;    //enable PWM on the output
+//CCP5CON3Hbits.OUTM = 0b000;
+//CCP5CON3Hbits.POLBDF = 0;    //active high
+CCP5CON3Hbits.POLACE = 0;
+CCP5TMRL = 0x0000;
+CCP5PRL = 3200U;
+CCP5RA = 0x000;
+CCP5RB = 0x001ff;
+CCP5CON1Lbits.CCPON = 1;</code>
    </operation>
    <operation name="PWM_idxLookup" type="uint8_t" visibility="0x02" properties="0x00">
     <documentation>returns index of array element containing 'val'. 8 element array 
@@ -1216,12 +1222,12 @@ return(0xff); //not found</code>
    <operation name="PWM_getPeriodIdx" type="uint16_t" visibility="0x02" properties="0x00">
     <documentation>dummy parameter to conform to a funcptr.</documentation>
     <parameter name="item" type="ITEM*"/>
-    <code>return(PWM_idxLookup(pwmPeriod,CCP1PRL));</code>
+    <code>return(PWM_idxLookup(pwmPeriod,CCP5PRL));</code>
    </operation>
    <operation name="PWM_setPeriod" type="uint16_t" visibility="0x02" properties="0x00">
     <parameter name="val" type="uint16_t"/>
     <parameter name="item" type="ITEM*"/>
-    <code>return(CCP1PRL = pwmPeriod[val]);</code>
+    <code>return(CCP5PRL = pwmPeriod[val]);</code>
    </operation>
    <operation name="PWM_getDuty" type="uint16_t" visibility="0x02" properties="0x00">
     <parameter name="item" type="ITEM*"/>
@@ -1240,34 +1246,34 @@ return(0xff); //not found</code>
   </package>
   <package name="Tacho" stereotype="0x02">
    <operation name="Tacho_init" type="void" visibility="0x02" properties="0x00">
-    <documentation>IC2 on tacho</documentation>
-    <code>CCP2CON1Lbits.CCPON = 0;   //disable
-CCP2CON1Lbits.CCSEL = 1;   //input capture mode
-CCP2CON1Lbits.CLKSEL = 0;  //sysclk
-CCP2CON1Lbits.TMR32 = 0;   //32-bit mode
-CCP2CON1Lbits.MOD = 1;     //rising every rising edge
-CCP2CON2Hbits.ICSEL = 0;   //rising edge
-CCP1CON1Hbits.IOPS = 0;    //interrupt on every event
-CCP1CON1Lbits.TMRPS = 0;   //prescaler
-CCP2CON1Lbits.CCPON = 1;   //enable
+    <documentation>IC3 on tacho</documentation>
+    <code>CCP3CON1Lbits.CCPON = 0;   //disable
+CCP3CON1Lbits.CCSEL = 1;   //input capture mode
+CCP3CON1Lbits.CLKSEL = 0;  //sysclk
+CCP3CON1Lbits.TMR32 = 0;   //32-bit mode
+CCP3CON1Lbits.MOD = 1;     //rising every rising edge
+CCP3CON2Hbits.ICSEL = 0;   //rising edge
+CCP3CON1Hbits.IOPS = 0;    //interrupt on every event
+CCP3CON1Lbits.TMRPS = 0;   //prescaler
+CCP3CON1Lbits.CCPON = 1;   //enable
 
-_CCT2IP = 1;    //tacho timer interrupt priority
+_CCT3IP = 1;    //tacho timer interrupt priority
                 //must be lower than tacho capture
-_CCP2IP = 6;    //tacho capture interrupt priority</code>
+_CCP3IP = 6;    //tacho capture interrupt priority</code>
    </operation>
-   <operation name="_CCT2Interrupt" type="void __attribute__((__interrupt__, auto_psv))" visibility="0x00" properties="0x00">
+   <operation name="_CCT3Interrupt" type="void __attribute__((__interrupt__, auto_psv))" visibility="0x00" properties="0x00">
     <documentation>Tachometer timer overflow interrupt </documentation>
     <code>tach_ro++;
-_CCT2IF = 0;</code>
+_CCT3IF = 0;</code>
    </operation>
-   <operation name="_CCP2Interrupt" type="void __attribute__((__interrupt__, auto_psv))" visibility="0x00" properties="0x00">
+   <operation name="_CCP3Interrupt" type="void __attribute__((__interrupt__, auto_psv))" visibility="0x00" properties="0x00">
     <documentation>measuring TACHO output from A4960</documentation>
     <code>static uint16_t oldval = 0;
 uint16_t tmpdata = 0;
 uint16_t tmp2 = 0;
 
-while(CCP2STATLbits.ICBNE) {    //data present
-    tmpdata = CCP2BUFL;
+while(CCP3STATLbits.ICBNE) {    //data present
+    tmpdata = CCP3BUFL;
 }
 
 tmp2 = tmpdata;
@@ -1281,7 +1287,7 @@ TACHO_SIG, tmpdata);
 
 //tach_ro = 0;
 
-_CCP2IF = 0;</code>
+_CCP3IF = 0;</code>
    </operation>
   </package>
   <package name="HEE" stereotype="0x00">
@@ -1376,28 +1382,28 @@ else {    //find first vacant location
    </operation>
   </package>
   <operation name="BSP_init" type="void" visibility="0x00" properties="0x00">
-   <code>RCONbits.SWDTEN = 0;                                /* disable Watchdog */
+   <code>RCONbits.SWDTEN = 0; /* disable Watchdog */
 
-TRISA = 0x00;                                /* set LED pins as outputs */
-PORTA = 0x00;                               /* set LEDs drive state low */
+TRISA = 0x00;        /* set all pins as dig.outputs */
+PORTA = 0x00;                               
 TRISB = 0x00;
 PORTB = 0x00;
 ANSA = 0x00;
 ANSB = 0x00;
 
-TACHO_TRIS = 1;    //tachometer input
-DIAG_TRIS = 1;     //diag pin input
-RBUT_TRIS = 1;    //RUN button
-BBUT_TRIS = 1;    //BRAKE button
-
-
+CONS_RX_TRIS = 1;    //inputs
+TACHO_TRIS = 1;    
+DIAG_TRIS = 1;     
+RBUT_TRIS = 1;    
+BBUT_TRIS = 1;    
+EBUT_TRIS = 1;
+ENCA_TRIS = 1;
+ENCB_TRIS = 1;    
 
 SPI_init();
 PWM_init();
 Tacho_init();
 HEE_init();
-
-LED_ON();
 </code>
   </operation>
  </package>
@@ -1583,9 +1589,11 @@ typedef struct field_t {
 
 void BSP_init(void);
 
-uint16_t getField( FIELD* field );                  //get A4960 field
-uint16_t setField( uint16_t val, FIELD* field );    //set A4960 field
-
+//uint16_t getField( FIELD* field );                  //get A4960 field
+//uint16_t setField( uint16_t val, FIELD* field );    //set A4960 field
+$declare(BSP::A4960::Common::A4960_xfer)
+$declare(BSP::A4960::Common::getField)
+$declare(BSP::A4960::Common::setField)
 
 #endif                                                             /* bsp_h */</text>
   </file>
@@ -1651,15 +1659,31 @@ int_t main () {
 
 
 /* Peripherals                                -----------------------------*/
-
 //pins that will eventually become inputs
-#define MISO_TRIS _TRISA7
-#define TACHO_TRIS _TRISB9
-#define DIAG_TRIS _TRISB3
-#define RBUT_TRIS _TRISA0
-#define RBUT_PIN _RA0
-#define BBUT_TRIS _TRISA1
-#define BBUT_PIN _RA1
+
+#define CONS_RX_TRIS _TRISB2
+
+//SPI1 used to talk to A4960
+#define MISO_TRIS _TRISB10
+//OC2B used to measure speed
+#define TACHO_TRIS _TRISB12
+#define DIAG_TRIS  _TRISB9
+
+#define RBUT_TRIS _TRISB5    //RUN button
+#define RBUT_PIN  _RB5
+
+#define BBUT_TRIS _TRISA4    //BRAKE button
+#define BBUT_PIN  _RA4
+
+#define EBUT_TRIS _TRISB3    //Button on encoder shaft
+#define EBUT_PIN  _RB3
+
+//it pays to keep encoder channels together
+#define ENCA_TRIS _TRISA0   //Encoder A channel
+#define ENCA_PIN  _RA0
+
+#define ENCB_TRIS _TRISA1    //Encoder B channel
+#define ENCB_PIN  _RA1
 
 /* High Endurance EEPROM        ------------------------------------------*/
 #define EE_SIZE 256U                 //x16 bit
@@ -1729,7 +1753,7 @@ volatile uint8_t heeq_Tail;    //interrupt changes this
 
 /* A4960 */
 
-#define A4960_CS_PIN _RB15
+#define A4960_CS_PIN _RB14
 
 
 #define TIMER1_ISR_PRIO         4
@@ -1754,8 +1778,8 @@ $define(BSP::ISR::_AddressError)
 $define(BSP::ISR::_StackError)
 $define(BSP::ISR::_T1Interrupt)
 
-$define(BSP::Tacho::_CCT2Interrupt)
-$define(BSP::Tacho::_CCP2Interrupt)
+$define(BSP::Tacho::_CCT3Interrupt)
+$define(BSP::Tacho::_CCP3Interrupt)
 
 $define(BSP::HEE::_NVMInterrupt)
 
@@ -2043,13 +2067,11 @@ extern ITEM const PWM_Duty;
 
 
 //LED times
-#define RUN_ON_TIME 1
-#define RUN_OFF_TIME 100
+#define RUN_ON_TIME  BSP_TICKS_PER_SEC/50
+#define RUN_OFF_TIME BSP_TICKS_PER_SEC*3
 
-#define ALARM_ON_TIME 20
-#define ALARM_OFF_TIME 20
-
-
+#define ALARM_ON_TIME  BSP_TICKS_PER_SEC/20
+#define ALARM_OFF_TIME BSP_TICKS_PER_SEC/20
 
 /* Variables */
 //Serial console
@@ -2149,7 +2171,7 @@ $define(BSP::ISR::_U1ErrInterrupt)</text>
 
 enum BldcMeterSignals {                       /* signals used in the meter */
     
-    TIME_TICK_SIG = Q_USER_SIG,
+    TICK_SIG = Q_USER_SIG,
     WCOL_SIG,    //SPI write collision
     BLINK_SIG,
     ALARM_SIG,

@@ -195,8 +195,16 @@ typedef struct field_t {
 
 void BSP_init(void);
 
-uint16_t getField( FIELD* field );                  //get A4960 field
-uint16_t setField( uint16_t val, FIELD* field );    //set A4960 field
+//uint16_t getField( FIELD* field );                  //get A4960 field
+//uint16_t setField( uint16_t val, FIELD* field );    //set A4960 field
+/*${BSP::A4960::Common::A4960_xfer} ........................................*/
+uint16_t A4960_xfer(uint8_t reg, uint16_t data);
+
+/*${BSP::A4960::Common::getField} ..........................................*/
+uint16_t getField(FIELD* field);
+
+/*${BSP::A4960::Common::setField} ..........................................*/
+uint16_t setField(uint16_t val, FIELD* field);
 
 
 #endif                                                             /* bsp_h */

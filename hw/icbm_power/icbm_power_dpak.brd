@@ -512,7 +512,7 @@ Please make sure your boards conform to these design rules.</description>
 <contactref element="JP17" pad="1"/>
 <contactref element="Q3" pad="4"/>
 <contactref element="Q5" pad="4"/>
-<polygon width="0.254" layer="1" isolate="0.3048" thermals="no">
+<polygon width="0.254" layer="1" isolate="0.4064" thermals="no">
 <vertex x="5.08" y="11.43"/>
 <vertex x="5.08" y="20.32"/>
 <vertex x="50.8" y="20.32"/>
@@ -531,7 +531,7 @@ Please make sure your boards conform to these design rules.</description>
 <contactref element="R1" pad="P$2"/>
 <contactref element="JP10" pad="1"/>
 <contactref element="JP18" pad="1"/>
-<polygon width="0.254" layer="1" isolate="0.3048" thermals="no">
+<polygon width="0.254" layer="1" isolate="0.4064" thermals="no">
 <vertex x="5.08" y="10.16"/>
 <vertex x="5.08" y="1.27"/>
 <vertex x="55.88" y="1.27"/>

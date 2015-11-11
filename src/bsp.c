@@ -47,15 +47,31 @@
 
 
 /* Peripherals                                -----------------------------*/
-
 //pins that will eventually become inputs
-#define MISO_TRIS _TRISA7
-#define TACHO_TRIS _TRISB9
-#define DIAG_TRIS _TRISB3
-#define RBUT_TRIS _TRISA0
-#define RBUT_PIN _RA0
-#define BBUT_TRIS _TRISA1
-#define BBUT_PIN _RA1
+
+#define CONS_RX_TRIS _TRISB2
+
+//SPI1 used to talk to A4960
+#define MISO_TRIS _TRISB10
+//OC2B used to measure speed
+#define TACHO_TRIS _TRISB12
+#define DIAG_TRIS  _TRISB9
+
+#define RBUT_TRIS _TRISB5    //RUN button
+#define RBUT_PIN  _RB5
+
+#define BBUT_TRIS _TRISA4    //BRAKE button
+#define BBUT_PIN  _RA4
+
+#define EBUT_TRIS _TRISB3    //Button on encoder shaft
+#define EBUT_PIN  _RB3
+
+//it pays to keep encoder channels together
+#define ENCA_TRIS _TRISA0   //Encoder A channel
+#define ENCA_PIN  _RA0
+
+#define ENCB_TRIS _TRISA1    //Encoder B channel
+#define ENCB_PIN  _RA1
 
 /* High Endurance EEPROM        ------------------------------------------*/
 #define EE_SIZE 256U                 //x16 bit
@@ -125,7 +141,7 @@ volatile uint8_t heeq_Tail;    //interrupt changes this
 
 /* A4960 */
 
-#define A4960_CS_PIN _RB15
+#define A4960_CS_PIN _RB14
 
 
 #define TIMER1_ISR_PRIO         4
@@ -212,24 +228,24 @@ void __attribute__((__interrupt__, auto_psv)) _T1Interrupt(void) {
     _T1IF = 0;                              /* clear Timer 1 interrupt flag */
 
     QACTIVE_POST_X_ISR((QActive*)&AO_Console, 1,
-        TIME_TICK_SIG, 0U);
+        TICK_SIG, 0U);
 
     QF_tickISR();                /* handle all armed time events in QF-nano */
 }
 
-/*${BSP::Tacho::_CCT2Interrupt} ............................................*/
-void __attribute__((__interrupt__, auto_psv)) _CCT2Interrupt(void) {
+/*${BSP::Tacho::_CCT3Interrupt} ............................................*/
+void __attribute__((__interrupt__, auto_psv)) _CCT3Interrupt(void) {
     tach_ro++;
-    _CCT2IF = 0;
+    _CCT3IF = 0;
 }
-/*${BSP::Tacho::_CCP2Interrupt} ............................................*/
-void __attribute__((__interrupt__, auto_psv)) _CCP2Interrupt(void) {
+/*${BSP::Tacho::_CCP3Interrupt} ............................................*/
+void __attribute__((__interrupt__, auto_psv)) _CCP3Interrupt(void) {
     static uint16_t oldval = 0;
     uint16_t tmpdata = 0;
     uint16_t tmp2 = 0;
 
-    while(CCP2STATLbits.ICBNE) {    //data present
-        tmpdata = CCP2BUFL;
+    while(CCP3STATLbits.ICBNE) {    //data present
+        tmpdata = CCP3BUFL;
     }
 
     tmp2 = tmpdata;
@@ -243,7 +259,7 @@ void __attribute__((__interrupt__, auto_psv)) _CCP2Interrupt(void) {
 
     //tach_ro = 0;
 
-    _CCP2IF = 0;
+    _CCP3IF = 0;
 }
 
 /*${BSP::HEE::_NVMInterrupt} ...............................................*/
@@ -285,40 +301,40 @@ void __attribute__((__interrupt__, auto_psv)) _NVMInterrupt(void) {
 
 /*${BSP::A4960::Common::SPI_init} ..........................................*/
 static void SPI_init(void) {
-    SSP2STATbits.CKE = 1;
-    SSP2CON1bits.SSPM = 0b1010;
-    SSP2ADD = 0x0f;    //1 MHz SPI clock
-    SSP2CON1bits.SSPEN = 1; //enable SPI
+    SSP1STATbits.CKE = 1;
+    SSP1CON1bits.SSPM = 0b1010;
+    SSP1ADD = 0x0f;    //1 MHz SPI clock
+    SSP1CON1bits.SSPEN = 1; //enable SPI
     MISO_TRIS = 1;    //set MISO line to input
 }
 /*${BSP::A4960::Common::A4960_xfer} ........................................*/
-static uint16_t A4960_xfer(uint8_t reg, uint16_t data) {
+uint16_t A4960_xfer(uint8_t reg, uint16_t data) {
     A4960_CS_PIN = 0;
 
     uint16_t tmpdata;
 
-    SSP2BUF = ((reg << 4) | (data >> 8));    //send upper byte
-    while(SSP2STATbits.BF == 0);    //wait till end of xfer
+    SSP1BUF = ((reg << 4) | (data >> 8));    //send upper byte
+    while(SSP1STATbits.BF == 0);    //wait till end of xfer
 
-    tmpdata = SSP2BUF;
+    tmpdata = SSP1BUF;
 
     if(tmpdata & 0x80) {    //A4960 fault
         QACTIVE_POST_X((QActive*)&AO_Console, 1, FF_SIG,0U);
     };
 
-    SSP2BUF = data & 0xff;        //send lower byte
+    SSP1BUF = data & 0xff;        //send lower byte
 
     tmpdata = tmpdata << 8;
-    while(SSP2STATbits.BF == 0);    //wait till end of xfer
+    while(SSP1STATbits.BF == 0);    //wait till end of xfer
 
-    tmpdata = (tmpdata | SSP2BUF);
+    tmpdata = (tmpdata | SSP1BUF);
 
     A4960_CS_PIN = 1;
 
     /* Look out for events */
 
-    if(SSP2CON1bits.WCOL == 1) {    //write collision
-        SSP2CON1bits.WCOL = 0;        //clear
+    if(SSP1CON1bits.WCOL == 1) {    //write collision
+        SSP1CON1bits.WCOL = 0;        //clear
         QACTIVE_POST_X((QActive*)&AO_Console, 1, WCOL_SIG,0U);
     }
 
@@ -565,24 +581,25 @@ static const uint16_t pwmFreq[] = { 250U, 500U, 1000U,
 
 /*${BSP::PWM::PWM_init} ....................................................*/
 static void PWM_init(void) {
-    CCP1CON1Lbits.CCSEL = 0;    //mode
-    CCP1CON1Lbits.MOD = 0b0101;
+    CCP5CON1Lbits.CCSEL = 0;    //mode
+    CCP5CON1Lbits.MOD = 0b0101;
 
-    CCP1CON1Lbits.TMR32 = 0;    //timebase
-    CCP1CON1Lbits.TMRSYNC = 0;
-    CCP1CON1Lbits.CLKSEL = 0b000;
-    CCP1CON1Lbits.TMRPS = 0b00;
-    CCP1CON1Hbits.TRIGEN = 0;
-    CCP1CON1Hbits.SYNC = 0b00000;
+    CCP5CON1Lbits.TMR32 = 0;    //timebase
+    CCP5CON1Lbits.TMRSYNC = 0;
+    CCP5CON1Lbits.CLKSEL = 0b000;
+    CCP5CON1Lbits.TMRPS = 0b00;
+    CCP5CON1Hbits.TRIGEN = 0;
+    CCP5CON1Hbits.SYNC = 0b00000;
 
-    CCP1CON2Hbits.OCBEN = 1;    //enable PWM on the output
-    CCP1CON3Hbits.OUTM = 0b000;
-    CCP1CON3Hbits.POLBDF = 0;    //active high
-    CCP1TMRL = 0x0000;
-    CCP1PRL = 3200U;
-    CCP1RA = 0x000;
-    CCP1RB = 0x001ff;
-    CCP1CON1Lbits.CCPON = 1;
+    CCP5CON2Hbits.OCAEN = 1;    //enable PWM on the output
+    //CCP5CON3Hbits.OUTM = 0b000;
+    //CCP5CON3Hbits.POLBDF = 0;    //active high
+    CCP5CON3Hbits.POLACE = 0;
+    CCP5TMRL = 0x0000;
+    CCP5PRL = 3200U;
+    CCP5RA = 0x000;
+    CCP5RB = 0x001ff;
+    CCP5CON1Lbits.CCPON = 1;
 }
 /*${BSP::PWM::PWM_idxLookup} ...............................................*/
 static uint8_t PWM_idxLookup(const uint16_t* array, uint16_t val) {
@@ -599,12 +616,12 @@ static uint8_t PWM_idxLookup(const uint16_t* array, uint16_t val) {
 }
 /*${BSP::PWM::PWM_getPeriodIdx} ............................................*/
 static uint16_t PWM_getPeriodIdx(ITEM* item) {
-    return(PWM_idxLookup(pwmPeriod,CCP1PRL));
+    return(PWM_idxLookup(pwmPeriod,CCP5PRL));
 }
 
 /*${BSP::PWM::PWM_setPeriod} ...............................................*/
 static uint16_t PWM_setPeriod(uint16_t val, ITEM* item) {
-    return(CCP1PRL = pwmPeriod[val]);
+    return(CCP5PRL = pwmPeriod[val]);
 }
 /*${BSP::PWM::PWM_convFreq} ................................................*/
 static uint16_t PWM_convFreq(ITEM* item) {
@@ -636,44 +653,44 @@ static void HEE_init(void) {
 
 /*${BSP::Tacho::Tacho_init} ................................................*/
 static void Tacho_init(void) {
-    CCP2CON1Lbits.CCPON = 0;   //disable
-    CCP2CON1Lbits.CCSEL = 1;   //input capture mode
-    CCP2CON1Lbits.CLKSEL = 0;  //sysclk
-    CCP2CON1Lbits.TMR32 = 0;   //32-bit mode
-    CCP2CON1Lbits.MOD = 1;     //rising every rising edge
-    CCP2CON2Hbits.ICSEL = 0;   //rising edge
-    CCP1CON1Hbits.IOPS = 0;    //interrupt on every event
-    CCP1CON1Lbits.TMRPS = 0;   //prescaler
-    CCP2CON1Lbits.CCPON = 1;   //enable
+    CCP3CON1Lbits.CCPON = 0;   //disable
+    CCP3CON1Lbits.CCSEL = 1;   //input capture mode
+    CCP3CON1Lbits.CLKSEL = 0;  //sysclk
+    CCP3CON1Lbits.TMR32 = 0;   //32-bit mode
+    CCP3CON1Lbits.MOD = 1;     //rising every rising edge
+    CCP3CON2Hbits.ICSEL = 0;   //rising edge
+    CCP3CON1Hbits.IOPS = 0;    //interrupt on every event
+    CCP3CON1Lbits.TMRPS = 0;   //prescaler
+    CCP3CON1Lbits.CCPON = 1;   //enable
 
-    _CCT2IP = 1;    //tacho timer interrupt priority
+    _CCT3IP = 1;    //tacho timer interrupt priority
                     //must be lower than tacho capture
-    _CCP2IP = 6;    //tacho capture interrupt priority
+    _CCP3IP = 6;    //tacho capture interrupt priority
 }
 /*${BSP::BSP_init} .........................................................*/
 void BSP_init(void) {
-    RCONbits.SWDTEN = 0;                                /* disable Watchdog */
+    RCONbits.SWDTEN = 0; /* disable Watchdog */
 
-    TRISA = 0x00;                                /* set LED pins as outputs */
-    PORTA = 0x00;                               /* set LEDs drive state low */
+    TRISA = 0x00;        /* set all pins as dig.outputs */
+    PORTA = 0x00;
     TRISB = 0x00;
     PORTB = 0x00;
     ANSA = 0x00;
     ANSB = 0x00;
 
-    TACHO_TRIS = 1;    //tachometer input
-    DIAG_TRIS = 1;     //diag pin input
-    RBUT_TRIS = 1;    //RUN button
-    BBUT_TRIS = 1;    //BRAKE button
-
-
+    CONS_RX_TRIS = 1;    //inputs
+    TACHO_TRIS = 1;
+    DIAG_TRIS = 1;
+    RBUT_TRIS = 1;
+    BBUT_TRIS = 1;
+    EBUT_TRIS = 1;
+    ENCA_TRIS = 1;
+    ENCB_TRIS = 1;
 
     SPI_init();
     PWM_init();
     Tacho_init();
     HEE_init();
-
-    LED_ON();
 
 }
 /*${BSP::QPn::QF_onStartup} ................................................*/
@@ -687,8 +704,8 @@ void QF_onStartup(void) {
     T1CONbits.TON = 1;                                     /* start Timer 1 */
 
     /* Enable peripheral interrupts as late as possible */
-    _CCT2IE = 1;    //tacho timer
-    _CCP2IE = 1;    //tacho capture
+    _CCT3IE = 1;    //tacho timer
+    _CCP3IE = 1;    //tacho capture
     _U1RXIE = 1;                                     /* Console on UART1 Rx */
     _NVMIE = 1;            //EEPROM
 }

@@ -26,7 +26,7 @@
 
 enum BldcMeterSignals {                       /* signals used in the meter */
 
-    TIME_TICK_SIG = Q_USER_SIG,
+    TICK_SIG = Q_USER_SIG,
     WCOL_SIG,    //SPI write collision
     BLINK_SIG,
     ALARM_SIG,

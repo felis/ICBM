@@ -101,13 +101,11 @@ extern ITEM const PWM_Duty;
 
 
 //LED times
-#define RUN_ON_TIME 1
-#define RUN_OFF_TIME 100
+#define RUN_ON_TIME  BSP_TICKS_PER_SEC/50
+#define RUN_OFF_TIME BSP_TICKS_PER_SEC*3
 
-#define ALARM_ON_TIME 20
-#define ALARM_OFF_TIME 20
-
-
+#define ALARM_ON_TIME  BSP_TICKS_PER_SEC/20
+#define ALARM_OFF_TIME BSP_TICKS_PER_SEC/20
 
 /* Variables */
 //Serial console
@@ -215,9 +213,9 @@ typedef struct Blinke {
 
 /* private: */
 } Blinke;
-extern uint8_t Blinke_cnt;
+extern uint16_t Blinke_cnt;
 extern uint8_t Blinke_on_time;
-extern uint8_t Blinke_off_time;
+extern uint16_t Blinke_off_time;
 
 /* protected: */
 static QState Blinke_initial(Blinke * const me);
@@ -675,10 +673,12 @@ static QState Console_Session(Console * const me) {
             status_ = QM_HANDLED();
             break;
         }
-        /* ${AOs::Console::SM::Session::TIME_TICK} */
-        case TIME_TICK_SIG: {
+        /* ${AOs::Console::SM::Session::TICK} */
+        case TICK_SIG: {
             Q_SIG(&me->tacho) = Q_SIG(me);
             QMSM_DISPATCH((QMsm*)&me->tacho);
+            Q_SIG(&me->blinke) = Q_SIG(me);
+            QMSM_DISPATCH((QMsm*)&me->blinke);
             status_ = QM_HANDLED();
             break;
         }
@@ -726,19 +726,20 @@ static QState Console_Session(Console * const me) {
 
             Console_printStr("]");
 
-            //diagnostic flags
+            //diagnostic flags. I need to write to a register to get those
+            uint16_t tmpdata = A4960_xfer(A4960_RUN_RD,0U);         //read RUN register
+            uint16_t tmpdiag = A4960_xfer(A4960_RUN_WR,tmpdata);    //read diagnostic
+
             Console_printStr(" [ ");
             uint8_t i;
-            uint16_t tmp = me->diag;
 
             for(i = 0; i < 16; i++) {
-                if(tmp & 0x8000) {    //print flag if set
+                if(tmpdiag & 0x8000) {    //print flag if set
                     Console_printStr(diag_flags[i]);
                 }
-                tmp <<=1;
+                tmpdiag <<=1;
             }
             Console_printStr("]");
-
 
             Console_printStr("   ");
             QActive_armX(&me->super, 0U, STAT_TOUT);
@@ -1554,8 +1555,8 @@ static QState Tacho_Idle(Tacho * const me) {
             status_ = QM_TRAN(&tatbl_);
             break;
         }
-        /* ${AOs::Tacho::SM::Idle::TIME_TICK} */
-        case TIME_TICK_SIG: {
+        /* ${AOs::Tacho::SM::Idle::TICK} */
+        case TICK_SIG: {
             status_ = QM_HANDLED();
             break;
         }
@@ -1572,9 +1573,9 @@ static QState Tacho_Idle(Tacho * const me) {
 static QState Tacho_Process(Tacho * const me) {
     QState status_;
     switch (Q_SIG(me)) {
-        /* ${AOs::Tacho::SM::Process::TIME_TICK} */
-        case TIME_TICK_SIG: {
-            /* ${AOs::Tacho::SM::Process::TIME_TICK::[]} */
+        /* ${AOs::Tacho::SM::Process::TICK} */
+        case TICK_SIG: {
+            /* ${AOs::Tacho::SM::Process::TICK::[]} */
             if (me->cnt-- == 0) {
                 static struct {
                     QMState const *target;
@@ -1623,9 +1624,9 @@ static QState Tacho_Process(Tacho * const me) {
 
 //en.wikipedia.org/wiki/Blinkenlights
 /*${AOs::Blinke} ...........................................................*/
-uint8_t Blinke_cnt;
+uint16_t Blinke_cnt;
 uint8_t Blinke_on_time;
-uint8_t Blinke_off_time;
+uint16_t Blinke_off_time;
 /*${AOs::Blinke::SM} .......................................................*/
 static QState Blinke_initial(Blinke * const me) {
     static struct {
@@ -1694,10 +1695,10 @@ static QState Blinke_DER_BLINKENLICHT(Blinke * const me) {
 static QState Blinke_Off(Blinke * const me) {
     QState status_;
     switch (Q_SIG(me)) {
-        /* ${AOs::Blinke::SM::DER_BLINKENLICHT::Off::BLINK} */
-        case BLINK_SIG: {
+        /* ${AOs::Blinke::SM::DER_BLINKENLICHT::Off::TICK} */
+        case TICK_SIG: {
             Blinke_cnt--;
-            /* ${AOs::Blinke::SM::DER_BLINKENLICHT::Off::BLINK::[Blinke_cnt==0]} */
+            /* ${AOs::Blinke::SM::DER_BLINKENLICHT::Off::TICK::[Blinke_cnt==0]} */
             if (Blinke_cnt == 0) {
                 static struct {
                     QMState const *target;
@@ -1742,10 +1743,10 @@ static QState Blinke_On_x(Blinke * const me) {
 static QState Blinke_On(Blinke * const me) {
     QState status_;
     switch (Q_SIG(me)) {
-        /* ${AOs::Blinke::SM::DER_BLINKENLICHT::On::BLINK} */
-        case BLINK_SIG: {
+        /* ${AOs::Blinke::SM::DER_BLINKENLICHT::On::TICK} */
+        case TICK_SIG: {
             Blinke_cnt--;
-            /* ${AOs::Blinke::SM::DER_BLINKENLICHT::On::BLINK::[Blinke_cnt==0]} */
+            /* ${AOs::Blinke::SM::DER_BLINKENLICHT::On::TICK::[Blinke_cnt==0]} */
             if (Blinke_cnt == 0) {
                 static struct {
                     QMState const *target;
