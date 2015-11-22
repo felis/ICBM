@@ -175,35 +175,6 @@ const char* const menuTune[]={"Tune","Tune"};
 #define MENU_TUNE_CNT Q_DIM(menuTune)
 
 /* local objects -----------------------------------------------------------*/
-/*${AOs::Tacho} ............................................................*/
-typedef struct Tacho {
-/* protected: */
-    QMsm super;
-
-/* private: */
-    uint8_t cnt;
-} Tacho;
-
-/* protected: */
-static QState Tacho_initial(Tacho * const me);
-static QState Tacho_Idle  (Tacho * const me);
-static QState Tacho_Idle_e(Tacho * const me);
-static QMState const Tacho_Idle_s = {
-    (QMState const *)0, /* superstate (top) */
-    Q_STATE_CAST(&Tacho_Idle),
-    Q_ACTION_CAST(&Tacho_Idle_e),
-    Q_ACTION_CAST(0), /* no exit action */
-    Q_ACTION_CAST(0)  /* no intitial tran. */
-};
-static QState Tacho_Process  (Tacho * const me);
-static QMState const Tacho_Process_s = {
-    (QMState const *)0, /* superstate (top) */
-    Q_STATE_CAST(&Tacho_Process),
-    Q_ACTION_CAST(0), /* no entry action */
-    Q_ACTION_CAST(0), /* no exit action */
-    Q_ACTION_CAST(0)  /* no intitial tran. */
-};
-
 
 //en.wikipedia.org/wiki/Blinkenlights
 /*${AOs::Blinke} ...........................................................*/
@@ -257,7 +228,6 @@ typedef struct Console {
 
 /* public: */
     uint16_t diag;
-    Tacho tacho;
     Blinke blinke;
 } Console;
 
@@ -275,7 +245,6 @@ static void Console_handleMenuItems(
     uint8_t key,
     FIELD** field,
     uint8_t cnt);
-static void Console_Tacho_ctor(Tacho* const me);
 static void Console_Blinke_ctor(Blinke* const me);
 
 /* protected: */
@@ -410,9 +379,6 @@ Console AO_Console;
 void Console_ctor(void) {
     Console *me = &AO_Console;
     QMActive_ctor(&me->super, Q_STATE_CAST(&Console_initial));
-
-    Console_Tacho_ctor(&me->tacho);
-    QMSM_INIT((QMsm*)&me->tacho);
 
     Console_Blinke_ctor(&me->blinke);
     QMSM_INIT((QMsm*)&me->blinke);
@@ -592,8 +558,6 @@ static void Console_handleMenuItems(
         return;    //no further processing necessary
     }
 
-    //tmpdata =
-    //    item[me->menuselect-1]->get(&(*item[me->menuselect-1]));
     tmpdata = getField(&(*field[me->menuselect-1]));
 
     if(key == 'w' || key == 'W') {    //increment
@@ -613,11 +577,6 @@ static void Console_handleMenuItems(
     tmpdata &= tmplen;
 
     setField(tmpdata,&(*field[me->menuselect-1]));
-    //field[me->menuselect-1]->set(tmpdata,&(*item[me->menuselect-1]));
-}
-/*${AOs::Console::Tacho_ctor} ..............................................*/
-static void Console_Tacho_ctor(Tacho* const me) {
-    QMsm_ctor(&me->super, Q_STATE_CAST(&Tacho_initial));
 }
 /*${AOs::Console::Blinke_ctor} .............................................*/
 static void Console_Blinke_ctor(Blinke* const me) {
@@ -666,17 +625,17 @@ static QState Console_Session(Console * const me) {
             //me->diag =
             //    A4960_TwFlag.set(i, (struct item_t*)&A4960_TwFlag);
 
-            uint8_t i = getField((struct field_t*)&TwFlag);
-            me->diag = setField(i, (struct field_t*)&TwFlag);
+            //uint8_t i = getField((struct field_t*)&TwFlag);
+            //me->diag = setField(i, (struct field_t*)&TwFlag);
 
-            Console_printStr("\r\nA4960 fault");
+            //Console_printNum(Q_PAR(me),16,0U);
+
+            //Console_printStr("\r\nA4960 fault");
             status_ = QM_HANDLED();
             break;
         }
         /* ${AOs::Console::SM::Session::TICK} */
         case TICK_SIG: {
-            Q_SIG(&me->tacho) = Q_SIG(me);
-            QMSM_DISPATCH((QMsm*)&me->tacho);
             Q_SIG(&me->blinke) = Q_SIG(me);
             QMSM_DISPATCH((QMsm*)&me->blinke);
             status_ = QM_HANDLED();
@@ -684,18 +643,6 @@ static QState Console_Session(Console * const me) {
         }
         /* ${AOs::Console::SM::Session::TACHO} */
         case TACHO_SIG: {
-            Q_SIG((QMsm*)&me->tacho) = Q_SIG(me);
-            Q_PAR((QMsm*)&me->tacho) = Q_PAR(me);
-            QMSM_DISPATCH((QMsm*)&me->tacho);
-            //Console_printStr("Tacho");
-
-            //QActive_disarmX((QActive*)me, 3U);
-            //QActive_armX((QActive*)me, 3U, TACH_TOUT);
-            status_ = QM_HANDLED();
-            break;
-        }
-        /* ${AOs::Console::SM::Session::RPM} */
-        case RPM_SIG: {
             me->rpm = Q_PAR(me);
             status_ = QM_HANDLED();
             break;
@@ -706,7 +653,7 @@ static QState Console_Session(Console * const me) {
                 {"FF ","POR ","VR ","?? ","TW ","TS ","LOS ","VA ","VB ",
                 "VC ","AH ","AL ","BH ","BL ","CH ","CL "};
 
-
+            uint32_t tmp32;
             /* Status line output */
             Console_printStr("\rSpeed: ");
             Console_printNum(me->rpm, 10, 0U);
@@ -726,20 +673,38 @@ static QState Console_Session(Console * const me) {
 
             Console_printStr("]");
 
+            Console_printStr(" Duty: ");
+
+            //tmp32 = ((PWM_getDuty() *100)/PWM_getPeriod()); //one tenth of a percent
+            //Console_printNum(tmp32, 10, 1U);
+            tmp32 = PWM_getDuty();
+            tmp32 *= 1000;
+            tmp32 /= PWM_getPeriod();
+            Console_printNum(tmp32,10,1U);
+
+
+
+            Console_printStr("%");
+
+
+
             //diagnostic flags. I need to write to a register to get those
             uint16_t tmpdata = A4960_xfer(A4960_RUN_RD,0U);         //read RUN register
             uint16_t tmpdiag = A4960_xfer(A4960_RUN_WR,tmpdata);    //read diagnostic
 
-            Console_printStr(" [ ");
-            uint8_t i;
+            if(tmpdiag) {
+                uint8_t i;
+                Console_printStr(" [ Flags: ");
 
-            for(i = 0; i < 16; i++) {
-                if(tmpdiag & 0x8000) {    //print flag if set
-                    Console_printStr(diag_flags[i]);
+                for(i = 0; i < 16; i++) {
+                    if(tmpdiag & 0x8000) {    //print flag if set
+                        Console_printStr(" ");
+                        Console_printStr(diag_flags[i]);
+                    }
+                    tmpdiag <<=1;
                 }
-                tmpdiag <<=1;
-            }
-            Console_printStr("]");
+                Console_printStr("]");
+            }//if( tmpdiag...
 
             Console_printStr("   ");
             QActive_armX(&me->super, 0U, STAT_TOUT);
@@ -748,23 +713,76 @@ static QState Console_Session(Console * const me) {
         }
         /* ${AOs::Console::SM::Session::RBUT_PRESS} */
         case RBUT_PRESS_SIG: {
-            Console_printStr("\r\n\r\nRun Button Pressed\r\n");
+            //Console_printStr("\r\n\r\nRun Button Pressed\r\n");
 
-            //A4960_Run.set(1, (struct item_t*)&A4960_Run);
+            uint8_t tmpdata = getField((struct field_t*)&Run);
 
-            setField(1, (struct field_t*)&Run);
+            tmpdata = !tmpdata;
 
-
-            //A4960_Run->name
-
-            //Console_printStr(A4960_Run.name);
+            setField(tmpdata, (struct field_t*)&Run);
             status_ = QM_HANDLED();
             break;
         }
-        /* ${AOs::Console::SM::Session::RBUT_RELEASE} */
-        case RBUT_RELEASE_SIG: {
-            Console_printStr("\r\n\r\nRun Button Released\r\n");
+        /* ${AOs::Console::SM::Session::ENCI} */
+        case ENCI_SIG: {
+            uint16_t tmpdata = PWM_getDuty();
+
+            if( ++tmpdata >= PWM_getPeriod() ) {
+                tmpdata = PWM_getPeriod();
+            }
+
+            PWM_setDuty( tmpdata );
             status_ = QM_HANDLED();
+            break;
+        }
+        /* ${AOs::Console::SM::Session::ENCD} */
+        case ENCD_SIG: {
+            uint16_t tmpdata = PWM_getDuty();
+
+            if( --tmpdata < 1 ) {
+                tmpdata = 1;
+            }
+
+            PWM_setDuty( tmpdata );
+            status_ = QM_HANDLED();
+            break;
+        }
+        /* ${AOs::Console::SM::Session::BBUT_PRESS} */
+        case BBUT_PRESS_SIG: {
+            uint8_t tmpdata = getField((struct field_t*)&Brake);
+
+            tmpdata = !tmpdata;
+
+            setField(tmpdata, (struct field_t*)&Brake);
+            status_ = QM_HANDLED();
+            break;
+        }
+        /* ${AOs::Console::SM::Session::EBUT_PRESS} */
+        case EBUT_PRESS_SIG: {
+            Console_printStr("\r\n\r\nEnc Button Pressed\r\n");
+            status_ = QM_HANDLED();
+            break;
+        }
+        /* ${AOs::Console::SM::Session::EBUT_RELEASE} */
+        case EBUT_RELEASE_SIG: {
+            Console_printStr("\r\n\r\nEnc Button Released\r\n");
+            status_ = QM_HANDLED();
+            break;
+        }
+        /* ${AOs::Console::SM::Session::KBD_KEY} */
+        case KBD_KEY_SIG: {
+            static struct {
+                QMState const *target;
+                QActionHandler act[2];
+            } const tatbl_ = { /* transition-action table */
+                &Console_Main_s, /* target state */
+                {
+                    Q_ACTION_CAST(&Console_Main_e), /* entry */
+                    Q_ACTION_CAST(0) /* zero terminator */
+                }
+            };
+            Console_printStr("\r\nKey Pressed At the TOP");
+            status_ = QM_TRAN(&tatbl_);
             break;
         }
         default: {
@@ -772,7 +790,6 @@ static QState Console_Session(Console * const me) {
             break;
         }
     }
-    (void)me; /* avoid compiler warning in case 'me' is not used */
     return status_;
 }
 /*${AOs::Console::SM::Session::Main} .......................................*/
@@ -1506,111 +1523,6 @@ static QState Console_UI(Console * const me) {
                 //    (me,(uint8_t)Q_PAR(me),(ITEM**)uiItems, UI_CNT);
                 status_ = QM_TRAN(&tatbl_);
             }
-            break;
-        }
-        default: {
-            status_ = QM_SUPER();
-            break;
-        }
-    }
-    return status_;
-}
-
-/*${AOs::Tacho} ............................................................*/
-/*${AOs::Tacho::SM} ........................................................*/
-static QState Tacho_initial(Tacho * const me) {
-    static struct {
-        QMState const *target;
-        QActionHandler act[2];
-    } const tatbl_ = { /* transition-action table */
-        &Tacho_Idle_s, /* target state */
-        {
-            Q_ACTION_CAST(&Tacho_Idle_e), /* entry */
-            Q_ACTION_CAST(0) /* zero terminator */
-        }
-    };
-    /* ${AOs::Tacho::SM::initial} */
-    return QM_TRAN_INIT(&tatbl_);
-}
-/*${AOs::Tacho::SM::Idle} ..................................................*/
-/* ${AOs::Tacho::SM::Idle} */
-static QState Tacho_Idle_e(Tacho * const me) {
-    QACTIVE_POST_X((QActive*)&AO_Console, 1, RPM_SIG, 0U);    //send out zero RPM
-    (void)me; /* avoid compiler warning in case 'me' is not used */
-    return QM_ENTRY(&Tacho_Idle_s);
-}
-/* ${AOs::Tacho::SM::Idle} */
-static QState Tacho_Idle(Tacho * const me) {
-    QState status_;
-    switch (Q_SIG(me)) {
-        /* ${AOs::Tacho::SM::Idle::TACHO} */
-        case TACHO_SIG: {
-            static QMTranActTable const tatbl_ = { /* transition-action table */
-                &Tacho_Process_s,
-                {
-                    Q_ACTION_CAST(0) /* zero terminator */
-                }
-            };
-            //Console_printStr("Tacho start");
-            status_ = QM_TRAN(&tatbl_);
-            break;
-        }
-        /* ${AOs::Tacho::SM::Idle::TICK} */
-        case TICK_SIG: {
-            status_ = QM_HANDLED();
-            break;
-        }
-        default: {
-            status_ = QM_SUPER();
-            break;
-        }
-    }
-    (void)me; /* avoid compiler warning in case 'me' is not used */
-    return status_;
-}
-/*${AOs::Tacho::SM::Process} ...............................................*/
-/* ${AOs::Tacho::SM::Process} */
-static QState Tacho_Process(Tacho * const me) {
-    QState status_;
-    switch (Q_SIG(me)) {
-        /* ${AOs::Tacho::SM::Process::TICK} */
-        case TICK_SIG: {
-            /* ${AOs::Tacho::SM::Process::TICK::[]} */
-            if (me->cnt-- == 0) {
-                static struct {
-                    QMState const *target;
-                    QActionHandler act[2];
-                } const tatbl_ = { /* transition-action table */
-                    &Tacho_Idle_s, /* target state */
-                    {
-                        Q_ACTION_CAST(&Tacho_Idle_e), /* entry */
-                        Q_ACTION_CAST(0) /* zero terminator */
-                    }
-                };
-                status_ = QM_TRAN(&tatbl_);
-            }
-            else {
-                status_ = QM_UNHANDLED();
-            }
-            break;
-        }
-        /* ${AOs::Tacho::SM::Process::TACHO} */
-        case TACHO_SIG: {
-            static uint32_t tachoLPS = 0U; /* Low-Pass-Filtered tacho reading */
-
-            me->cnt = 1;
-
-            uint32_t tmp = Q_PAR(me);    //get tacho reading
-
-            /* 1st order low-pass filter: time constant ~= 2^n samples
-            * TF = (1/2^n)/(z-((2^n - 1)/2^n)),
-            * eg, n=3, y(k+1) = y(k) - y(k)/8 + x(k)/8 => y += (x - y)/8
-            * - borrowed from M.Samek */
-            tachoLPS += (((int)tmp - (int)tachoLPS + 4) >> 8);       /* Low-Pass-Filter */
-
-            QACTIVE_POST_X((QActive*)&AO_Console, 1, RPM_SIG,
-                tachoLPS);    //send out RPM
-            status_ = QM_HANDLED();
             break;
         }
         default: {

@@ -191,10 +191,6 @@ typedef struct field_t {
     uint16_t(*conv)(struct field_t*);    //conversion utility
 } FIELD;
 
-
-
-//void BSP_init(void);
-
 /*${BSP::BSP_init} .........................................................*/
 void BSP_init(void);
 
@@ -206,6 +202,20 @@ uint16_t getField(FIELD* field);
 
 /*${BSP::A4960::Common::setField} ..........................................*/
 uint16_t setField(uint16_t val, FIELD* field);
+
+
+/*${BSP::PWM::PWM_getPeriod} ...............................................*/
+uint16_t PWM_getPeriod(void);
+
+/*${BSP::PWM::PWM_setPeriod} ...............................................*/
+uint16_t PWM_setPeriod(uint16_t val, ITEM* item);
+
+/*${BSP::PWM::PWM_getDuty} .................................................*/
+uint16_t PWM_getDuty(void);
+
+/*${BSP::PWM::PWM_setDuty} .................................................*/
+void PWM_setDuty(uint16_t val);
+
 
 
 #endif                                                             /* bsp_h */

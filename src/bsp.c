@@ -35,7 +35,6 @@
 #pragma config POSCMOD = HS, OSCIOFNC = CLKO, POSCFREQ = MS, FCKSM = CSECME
 #pragma config FWDTEN = OFF, WINDIS = OFF
 #pragma config BOREN=BOR0, RETCFG=OFF, PWRTEN = OFF, MCLRE=ON
-//#pragma config ICS = PGx2
 #pragma config ICS = PGx1
 
 /* Local-scope objects -----------------------------------------------------*/
@@ -47,31 +46,40 @@
 
 
 /* Peripherals                                -----------------------------*/
-//pins that will eventually become inputs
+//inputs
 
-#define CONS_RX_TRIS _TRISB2
+#define CONS_RX_TRIS _TRISB2    //console
+#define MISO_TRIS _TRISB10      //SPI
+#define TACHO_TRIS _TRISB12     //OC to measure length of tacho
+#define DIAG_TRIS  _TRISB9      //DIAG input
 
-//SPI1 used to talk to A4960
-#define MISO_TRIS _TRISB10
-//OC2B used to measure speed
-#define TACHO_TRIS _TRISB12
-#define DIAG_TRIS  _TRISB9
+#define RBUT_MASK     _PORTB_RB5_MASK
+#define RBUT_TRIS     _TRISB5    //RUN button
+#define RBUT_PIN      _RB5
+#define RBUT_PULLUP   _CN27PUE
 
-#define RBUT_TRIS _TRISB5    //RUN button
-#define RBUT_PIN  _RB5
+#define BBUT_MASK     _PORTA_RA4_MASK
+#define BBUT_TRIS     _TRISA4    //BRAKE button
+#define BBUT_PIN      _RA4
+#define BBUT_PULLUP   _CN0PUE
 
-#define BBUT_TRIS _TRISA4    //BRAKE button
-#define BBUT_PIN  _RA4
-
-#define EBUT_TRIS _TRISB3    //Button on encoder shaft
-#define EBUT_PIN  _RB3
+#define EBUT_MASK     _PORTB_RB3_MASK
+#define EBUT_TRIS     _TRISB3    //Button on encoder shaft
+#define EBUT_PIN      _RB3
+#define EBUT_PULLUP   _CN7PUE
 
 //it pays to keep encoder channels together
-#define ENCA_TRIS _TRISA0   //Encoder A channel
-#define ENCA_PIN  _RA0
+#define ENCA_MASK     _PORTA_RA0_MASK
+#define ENCA_TRIS     _TRISA0   //Encoder A channel
+#define ENCA_PIN      _RA0
+#define ENCA_PULLUP   _CN2PUE
 
-#define ENCB_TRIS _TRISA1    //Encoder B channel
-#define ENCB_PIN  _RA1
+#define ENCB_MASK     _PORTA_RA1_MASK
+#define ENCB_TRIS     _TRISA1    //Encoder B channel
+#define ENCB_PIN      _RA1
+#define ENCB_PULLUP   _CN3PUE
+
+#define ENC_PORT      PORTA
 
 /* High Endurance EEPROM        ------------------------------------------*/
 #define EE_SIZE 256U                 //x16 bit
@@ -159,7 +167,7 @@ const char const pct[] = "%";    //percent
 
 //- Static
 
-static uint8_t tach_ro;    //rollover count for Tacho
+//static uint8_t tach_ro;    //rollover count for Tacho
 
 /* ISRs --------------------------------------------------------------------*/
 /*${BSP::ISR::_AddressError} ...............................................*/
@@ -170,60 +178,88 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _AddressError(void) {
 void __attribute__((__interrupt__,__no_auto_psv__)) _StackError(void) {
     while(1);
 }
+
+//www.microchip.com/forums/FindPost/426711
 /*${BSP::ISR::_T1Interrupt} ................................................*/
 void __attribute__((__interrupt__, auto_psv)) _T1Interrupt(void) {
-    //typedef struct but_t {    //button debouncing
+    #define KEYS ((portb & RBUT_MASK) | (portb & EBUT_MASK) | (porta & BBUT_MASK))
 
+    typedef union {    //key specific
+         uint8_t w;
+         struct {
+             unsigned : 3;
+             unsigned ebut: 1;
+             unsigned bbut: 1;
+             unsigned rbut: 1;
+         } __attribute__ ((__packed__));
+     } Ku;
 
-    static uint32_t btn_debounced  = 0U;
-    static uint8_t  debounce_state = 0U;
+    static const int8_t const enc_states[] =         //encoder lookup table
+        {0,ENCD_SIG,ENCI_SIG,0,ENCI_SIG,0,0,ENCD_SIG,ENCD_SIG,0,0,ENCI_SIG,0,ENCI_SIG,ENCD_SIG,0};
 
-    //static uint32_t rbut_debounced  = 0U;
-    //static uint8_t  rbut_debounce_state = 0U;
+    static uint8_t old_AB = 0;    //previous state of the encoder
+    static uint8_t deb_idx = 0;   //index to button debounce history
+    static Ku kbd[4];             //button debounce history
+    static Ku keys = {0};         //debounced keys
+    Ku les = {0};                       //leading edges
+    Ku tes = {0};                       //trailing edges
+    Ku oldk;                      //prev.state of debounced keys
 
-    //static uint32_t bbut_debounced  = 0U;
-    //static uint8_t  bbut_debounce_state = 0U;
+    uint16_t porta = PORTA;    //read encoder and buttons
+    uint16_t portb = PORTB;
 
-    uint8_t btn = RBUT_PIN;          /* read the push button state */
-        switch (debounce_state) {
-            case 0:
-                if (btn != btn_debounced) {
-                    debounce_state = 1;         /* transition to the next state */
-                }
-                break;
-            case 1:
-                if (btn != btn_debounced) {
-                    debounce_state = 2;         /* transition to the next state */
-                }
-                else {
-                    debounce_state = 0;           /* transition back to state 0 */
-                }
-                break;
-            case 2:
-                if (btn != btn_debounced) {
-                    debounce_state = 3;         /* transition to the next state */
-                }
-                else {
-                    debounce_state = 0;           /* transition back to state 0 */
-                }
-                break;
-            case 3:
-                if (btn != btn_debounced) {
-                    btn_debounced = btn;     /* save the debounced button value */
+    //kbd[deb_idx].w = KEYS;  //store current state of the keys
 
-                    if (btn == 0) {                 /* is the button depressed? */
-                        QACTIVE_POST_X_ISR((QActive *)&AO_Console, 1,
-                            RBUT_PRESS_SIG, 0);
-                    }
-                    else {
-                        QACTIVE_POST_X_ISR((QActive *)&AO_Console, 1,
+    //process encoder
+    old_AB <<= 2;                //remember previous state
+    old_AB |= ( porta & 0x03 );  //add current state
+
+    if( enc_states[(old_AB & 0x0f)]) { //encoder changed state
+        QACTIVE_POST_X_ISR((QActive *)&AO_Console,
+            1, enc_states[(old_AB & 0x0f)], 0U);
+    }
+
+    //process buttons
+    deb_idx++;
+    deb_idx &= 0x03;        //wrap
+    kbd[deb_idx].w = KEYS;  //store current state of the keys
+    oldk = keys;            //store previous state of debounced keys
+
+    keys.w |= kbd[0].w & kbd[1].w & kbd[2].w & kbd[3].w;  // All on  - set
+    keys.w &= kbd[0].w | kbd[1].w | kbd[2].w | kbd[3].w;  // All off - clear
+
+    les.w |= (keys.w ^ oldk.w) & keys.w;     // or in new leading edges
+    tes.w |= (keys.w ^ oldk.w) & ~keys.w;    // or in new trailing edges
+
+    if(les.rbut) {
+                      QACTIVE_POST_X_ISR((QActive *)&AO_Console, 1,
                             RBUT_RELEASE_SIG, 0);
-                    }
+    }
 
-                }
-                debounce_state = 0;               /* transition back to state 0 */
-                break;
-        }
+    if(les.bbut) {
+                      QACTIVE_POST_X_ISR((QActive *)&AO_Console, 1,
+                            BBUT_RELEASE_SIG, 0);
+    }
+
+    if(les.ebut) {
+                      QACTIVE_POST_X_ISR((QActive *)&AO_Console, 1,
+                            EBUT_RELEASE_SIG, 0);
+    }
+
+    if(tes.rbut) {
+                      QACTIVE_POST_X_ISR((QActive *)&AO_Console, 1,
+                            RBUT_PRESS_SIG, 0);
+    }
+
+    if(tes.bbut) {
+                      QACTIVE_POST_X_ISR((QActive *)&AO_Console, 1,
+                            BBUT_PRESS_SIG, 0);
+    }
+
+    if(tes.ebut) {
+                      QACTIVE_POST_X_ISR((QActive *)&AO_Console, 1,
+                            EBUT_PRESS_SIG, 0);
+    }
 
     _T1IF = 0;                              /* clear Timer 1 interrupt flag */
 
@@ -235,29 +271,24 @@ void __attribute__((__interrupt__, auto_psv)) _T1Interrupt(void) {
 
 /*${BSP::Tacho::_CCT3Interrupt} ............................................*/
 void __attribute__((__interrupt__, auto_psv)) _CCT3Interrupt(void) {
-    tach_ro++;
+    //tach_ro++;
     _CCT3IF = 0;
 }
 /*${BSP::Tacho::_CCP3Interrupt} ............................................*/
 void __attribute__((__interrupt__, auto_psv)) _CCP3Interrupt(void) {
-    static uint16_t oldval = 0;
-    uint16_t tmpdata = 0;
-    uint16_t tmp2 = 0;
+    uint32_t time,sps; //rotor steps per second, i.e., rps multiplied by # of pole pairs
+
+    CCP3TMRL = 0;    //clear timer
+    CCP3TMRH = 0;
 
     while(CCP3STATLbits.ICBNE) {    //data present
-        tmpdata = CCP3BUFL;
+
+        time = ((CCP3BUFH << 8) | CCP3BUFL);
     }
-
-    tmp2 = tmpdata;
-    tmpdata += oldval;
-    oldval = ~tmp2;
-
-    //tmpdata |= (uint32_t)tach_ro << 16;
+        sps = FCY_HZ / (time*6);    //six pulses per step
 
     QACTIVE_POST_X_ISR ((QActive*)&AO_Console, 1,
-    TACHO_SIG, tmpdata);
-
-    //tach_ro = 0;
+        TACHO_SIG, sps);
 
     _CCP3IF = 0;
 }
@@ -318,10 +349,6 @@ uint16_t A4960_xfer(uint8_t reg, uint16_t data) {
 
     tmpdata = SSP1BUF;
 
-    if(tmpdata & 0x80) {    //A4960 fault
-        QACTIVE_POST_X((QActive*)&AO_Console, 1, FF_SIG,0U);
-    };
-
     SSP1BUF = data & 0xff;        //send lower byte
 
     tmpdata = tmpdata << 8;
@@ -329,7 +356,12 @@ uint16_t A4960_xfer(uint8_t reg, uint16_t data) {
 
     tmpdata = (tmpdata | SSP1BUF);
 
-    A4960_CS_PIN = 1;
+    A4960_CS_PIN = 1;    //transfer done
+
+    if((reg & 0x01) && (tmpdata & 0x8000)) {    //A4960 fault
+    //    QACTIVE_POST_X((QActive*)&AO_Console, 1, FF_SIG,0U);
+        QACTIVE_POST_X((QActive*)&AO_Console, 1, FF_SIG, tmpdata);
+    };
 
     /* Look out for events */
 
@@ -581,6 +613,9 @@ static const uint16_t pwmFreq[] = { 250U, 500U, 1000U,
 
 /*${BSP::PWM::PWM_init} ....................................................*/
 static void PWM_init(void) {
+    //_RA7 = 1;
+    //return;
+
     CCP5CON1Lbits.CCSEL = 0;    //mode
     CCP5CON1Lbits.MOD = 0b0101;
 
@@ -595,10 +630,10 @@ static void PWM_init(void) {
     //CCP5CON3Hbits.OUTM = 0b000;
     //CCP5CON3Hbits.POLBDF = 0;    //active high
     CCP5CON3Hbits.POLACE = 0;
-    CCP5TMRL = 0x0000;
-    CCP5PRL = 3200U;
-    CCP5RA = 0x000;
-    CCP5RB = 0x001ff;
+    //CCP5TMRL = 0xffff;
+    CCP5PRL = 0x03ff;
+    CCP5RA = 0x0000;
+    CCP5RB = 0x01ff;
     CCP5CON1Lbits.CCPON = 1;
 }
 /*${BSP::PWM::PWM_idxLookup} ...............................................*/
@@ -619,8 +654,12 @@ static uint16_t PWM_getPeriodIdx(ITEM* item) {
     return(PWM_idxLookup(pwmPeriod,CCP5PRL));
 }
 
+/*${BSP::PWM::PWM_getPeriod} ...............................................*/
+uint16_t PWM_getPeriod(void) {
+    return(CCP5PRL);
+}
 /*${BSP::PWM::PWM_setPeriod} ...............................................*/
-static uint16_t PWM_setPeriod(uint16_t val, ITEM* item) {
+uint16_t PWM_setPeriod(uint16_t val, ITEM* item) {
     return(CCP5PRL = pwmPeriod[val]);
 }
 /*${BSP::PWM::PWM_convFreq} ................................................*/
@@ -628,12 +667,12 @@ static uint16_t PWM_convFreq(ITEM* item) {
     return(pwmFreq[PWM_getPeriodIdx(item)]);
 }
 /*${BSP::PWM::PWM_getDuty} .................................................*/
-static uint16_t PWM_getDuty(ITEM* item) {
-    return(0);
+uint16_t PWM_getDuty(void) {
+    return(CCP5RB);
 }
 /*${BSP::PWM::PWM_setDuty} .................................................*/
-static uint16_t PWM_setDuty(uint16_t val, ITEM* item) {
-    return(0);
+void PWM_setDuty(uint16_t val) {
+    CCP5RB = val;
 }
 
 ITEM const PWM_Freq =
@@ -656,14 +695,14 @@ static void Tacho_init(void) {
     CCP3CON1Lbits.CCPON = 0;   //disable
     CCP3CON1Lbits.CCSEL = 1;   //input capture mode
     CCP3CON1Lbits.CLKSEL = 0;  //sysclk
-    CCP3CON1Lbits.TMR32 = 0;   //32-bit mode
+    CCP3CON1Lbits.TMR32 = 1;   //32-bit mode
     CCP3CON1Lbits.MOD = 1;     //rising every rising edge
     CCP3CON2Hbits.ICSEL = 0;   //rising edge
     CCP3CON1Hbits.IOPS = 0;    //interrupt on every event
     CCP3CON1Lbits.TMRPS = 0;   //prescaler
     CCP3CON1Lbits.CCPON = 1;   //enable
 
-    _CCT3IP = 1;    //tacho timer interrupt priority
+    //_CCT3IP = 1;    //tacho timer interrupt priority
                     //must be lower than tacho capture
     _CCP3IP = 6;    //tacho capture interrupt priority
 }
@@ -686,6 +725,11 @@ void BSP_init(void) {
     EBUT_TRIS = 1;
     ENCA_TRIS = 1;
     ENCB_TRIS = 1;
+    RBUT_PULLUP = 1;    //pullups on mechanical inputs
+    BBUT_PULLUP = 1;
+    EBUT_PULLUP = 1;
+    ENCA_PULLUP = 1;
+    ENCB_PULLUP = 1;
 
     SPI_init();
     PWM_init();
@@ -704,7 +748,7 @@ void QF_onStartup(void) {
     T1CONbits.TON = 1;                                     /* start Timer 1 */
 
     /* Enable peripheral interrupts as late as possible */
-    _CCT3IE = 1;    //tacho timer
+    //_CCT3IE = 1;    //tacho timer
     _CCP3IE = 1;    //tacho capture
     _U1RXIE = 1;                                     /* Console on UART1 Rx */
     _NVMIE = 1;            //EEPROM

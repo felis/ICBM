@@ -40,7 +40,12 @@ enum BldcMeterSignals {                       /* signals used in the meter */
     RBUT_PRESS_SIG,
     RBUT_RELEASE_SIG,
     BBUT_PRESS_SIG,
-    BBUT_RELEASE_SIG
+    BBUT_RELEASE_SIG,
+    EBUT_PRESS_SIG,
+    EBUT_RELEASE_SIG,
+    //ENCODER_SIG,
+    ENCI_SIG,
+    ENCD_SIG
 };
 /* Access to A4960 fields */
 

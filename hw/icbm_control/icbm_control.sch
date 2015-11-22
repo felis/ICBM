@@ -338,16 +338,16 @@ Source: CS Eagle 7.2 distro</description>
 <pin name="AVSS" x="2.54" y="-27.94" length="middle" rot="R90"/>
 <pin name="VCAP" x="0" y="-27.94" length="middle" rot="R90"/>
 <pin name="!MCLR" x="-55.88" y="20.32" length="middle"/>
-<pin name="RA0/AN0/C3INC" x="53.34" y="-20.32" length="middle" rot="R180"/>
-<pin name="RA1/AN1" x="53.34" y="-15.24" length="middle" rot="R180"/>
+<pin name="CN2/RA0" x="53.34" y="-20.32" length="middle" rot="R180"/>
+<pin name="CN3/RA1" x="53.34" y="-15.24" length="middle" rot="R180"/>
 <pin name="RB0/U2TX" x="-55.88" y="-5.08" length="middle"/>
 <pin name="RB1/U2RX" x="-55.88" y="-7.62" length="middle"/>
 <pin name="RB2/U1RX" x="-55.88" y="0" length="middle"/>
-<pin name="RB3/AN5/OA1OUT/C2INC" x="53.34" y="-7.62" length="middle" rot="R180"/>
+<pin name="CN7/RB3" x="53.34" y="-7.62" length="middle" rot="R180"/>
 <pin name="OSCI" x="-55.88" y="-12.7" length="middle"/>
 <pin name="OSCO" x="-55.88" y="-17.78" length="middle"/>
-<pin name="SCK2/RB5" x="53.34" y="0" length="middle" rot="R180"/>
-<pin name="SDO2/RB6" x="53.34" y="5.08" length="middle" rot="R180"/>
+<pin name="CN27/RB5" x="53.34" y="0" length="middle" rot="R180"/>
+<pin name="IC5/RB6" x="53.34" y="5.08" length="middle" rot="R180"/>
 <pin name="RB7/U1TX" x="-55.88" y="2.54" length="middle"/>
 <pin name="OC1B/RB8" x="53.34" y="-10.16" length="middle" rot="R180"/>
 <pin name="IC2/RB9" x="53.34" y="-5.08" length="middle" rot="R180"/>
@@ -359,7 +359,7 @@ Source: CS Eagle 7.2 distro</description>
 <pin name="RB14/OA1IND/OA2IND/AN10/C3INB" x="53.34" y="12.7" length="middle" rot="R180"/>
 <pin name="RB15/AN9/REFO/OA2OUT/C3INA" x="53.34" y="10.16" length="middle" rot="R180"/>
 <pin name="RB4/AN15" x="53.34" y="-17.78" length="middle" rot="R180"/>
-<pin name="RA4/AN16" x="53.34" y="-12.7" length="middle" rot="R180"/>
+<pin name="CN0/RA4" x="53.34" y="-12.7" length="middle" rot="R180"/>
 <wire x1="-50.8" y1="22.86" x2="48.26" y2="22.86" width="0.254" layer="94"/>
 <wire x1="48.26" y1="22.86" x2="48.26" y2="-22.86" width="0.254" layer="94"/>
 <wire x1="48.26" y1="-22.86" x2="-50.8" y2="-22.86" width="0.254" layer="94"/>
@@ -377,15 +377,18 @@ Source: CS Eagle 7.2 distro</description>
 <connect gate="G$1" pin="!MCLR" pad="1"/>
 <connect gate="G$1" pin="AVDD" pad="28"/>
 <connect gate="G$1" pin="AVSS" pad="27"/>
+<connect gate="G$1" pin="CN0/RA4" pad="12"/>
+<connect gate="G$1" pin="CN2/RA0" pad="2"/>
+<connect gate="G$1" pin="CN27/RB5" pad="14"/>
+<connect gate="G$1" pin="CN3/RA1" pad="3"/>
+<connect gate="G$1" pin="CN7/RB3" pad="7"/>
 <connect gate="G$1" pin="IC2/RB9" pad="18"/>
+<connect gate="G$1" pin="IC5/RB6" pad="15"/>
 <connect gate="G$1" pin="OC1B/RB8" pad="17"/>
 <connect gate="G$1" pin="OC3B/RB13" pad="24"/>
 <connect gate="G$1" pin="OC5/SDI2/RA7" pad="19"/>
 <connect gate="G$1" pin="OSCI" pad="9"/>
 <connect gate="G$1" pin="OSCO" pad="10"/>
-<connect gate="G$1" pin="RA0/AN0/C3INC" pad="2"/>
-<connect gate="G$1" pin="RA1/AN1" pad="3"/>
-<connect gate="G$1" pin="RA4/AN16" pad="12"/>
 <connect gate="G$1" pin="RB0/U2TX" pad="4"/>
 <connect gate="G$1" pin="RB1/U2RX" pad="5"/>
 <connect gate="G$1" pin="RB10/PGED2" pad="21"/>
@@ -394,11 +397,8 @@ Source: CS Eagle 7.2 distro</description>
 <connect gate="G$1" pin="RB14/OA1IND/OA2IND/AN10/C3INB" pad="25"/>
 <connect gate="G$1" pin="RB15/AN9/REFO/OA2OUT/C3INA" pad="26"/>
 <connect gate="G$1" pin="RB2/U1RX" pad="6"/>
-<connect gate="G$1" pin="RB3/AN5/OA1OUT/C2INC" pad="7"/>
 <connect gate="G$1" pin="RB4/AN15" pad="11"/>
 <connect gate="G$1" pin="RB7/U1TX" pad="16"/>
-<connect gate="G$1" pin="SCK2/RB5" pad="14"/>
-<connect gate="G$1" pin="SDO2/RB6" pad="15"/>
 <connect gate="G$1" pin="VCAP" pad="20"/>
 <connect gate="G$1" pin="VDD" pad="13"/>
 <connect gate="G$1" pin="VSS" pad="8"/>
@@ -412,15 +412,18 @@ Source: CS Eagle 7.2 distro</description>
 <connect gate="G$1" pin="!MCLR" pad="1"/>
 <connect gate="G$1" pin="AVDD" pad="28"/>
 <connect gate="G$1" pin="AVSS" pad="27"/>
+<connect gate="G$1" pin="CN0/RA4" pad="12"/>
+<connect gate="G$1" pin="CN2/RA0" pad="2"/>
+<connect gate="G$1" pin="CN27/RB5" pad="14"/>
+<connect gate="G$1" pin="CN3/RA1" pad="3"/>
+<connect gate="G$1" pin="CN7/RB3" pad="7"/>
 <connect gate="G$1" pin="IC2/RB9" pad="18"/>
+<connect gate="G$1" pin="IC5/RB6" pad="15"/>
 <connect gate="G$1" pin="OC1B/RB8" pad="17"/>
 <connect gate="G$1" pin="OC3B/RB13" pad="24"/>
 <connect gate="G$1" pin="OC5/SDI2/RA7" pad="19"/>
 <connect gate="G$1" pin="OSCI" pad="9"/>
 <connect gate="G$1" pin="OSCO" pad="10"/>
-<connect gate="G$1" pin="RA0/AN0/C3INC" pad="2"/>
-<connect gate="G$1" pin="RA1/AN1" pad="3"/>
-<connect gate="G$1" pin="RA4/AN16" pad="12"/>
 <connect gate="G$1" pin="RB0/U2TX" pad="4"/>
 <connect gate="G$1" pin="RB1/U2RX" pad="5"/>
 <connect gate="G$1" pin="RB10/PGED2" pad="21"/>
@@ -429,11 +432,8 @@ Source: CS Eagle 7.2 distro</description>
 <connect gate="G$1" pin="RB14/OA1IND/OA2IND/AN10/C3INB" pad="25"/>
 <connect gate="G$1" pin="RB15/AN9/REFO/OA2OUT/C3INA" pad="26"/>
 <connect gate="G$1" pin="RB2/U1RX" pad="6"/>
-<connect gate="G$1" pin="RB3/AN5/OA1OUT/C2INC" pad="7"/>
 <connect gate="G$1" pin="RB4/AN15" pad="11"/>
 <connect gate="G$1" pin="RB7/U1TX" pad="16"/>
-<connect gate="G$1" pin="SCK2/RB5" pad="14"/>
-<connect gate="G$1" pin="SDO2/RB6" pad="15"/>
 <connect gate="G$1" pin="VCAP" pad="20"/>
 <connect gate="G$1" pin="VDD" pad="13"/>
 <connect gate="G$1" pin="VSS" pad="8"/>
@@ -447,15 +447,18 @@ Source: CS Eagle 7.2 distro</description>
 <connect gate="G$1" pin="!MCLR" pad="1"/>
 <connect gate="G$1" pin="AVDD" pad="28"/>
 <connect gate="G$1" pin="AVSS" pad="27"/>
+<connect gate="G$1" pin="CN0/RA4" pad="12"/>
+<connect gate="G$1" pin="CN2/RA0" pad="2"/>
+<connect gate="G$1" pin="CN27/RB5" pad="14"/>
+<connect gate="G$1" pin="CN3/RA1" pad="3"/>
+<connect gate="G$1" pin="CN7/RB3" pad="7"/>
 <connect gate="G$1" pin="IC2/RB9" pad="18"/>
+<connect gate="G$1" pin="IC5/RB6" pad="15"/>
 <connect gate="G$1" pin="OC1B/RB8" pad="17"/>
 <connect gate="G$1" pin="OC3B/RB13" pad="24"/>
 <connect gate="G$1" pin="OC5/SDI2/RA7" pad="19"/>
 <connect gate="G$1" pin="OSCI" pad="9"/>
 <connect gate="G$1" pin="OSCO" pad="10"/>
-<connect gate="G$1" pin="RA0/AN0/C3INC" pad="2"/>
-<connect gate="G$1" pin="RA1/AN1" pad="3"/>
-<connect gate="G$1" pin="RA4/AN16" pad="12"/>
 <connect gate="G$1" pin="RB0/U2TX" pad="4"/>
 <connect gate="G$1" pin="RB1/U2RX" pad="5"/>
 <connect gate="G$1" pin="RB10/PGED2" pad="21"/>
@@ -464,11 +467,8 @@ Source: CS Eagle 7.2 distro</description>
 <connect gate="G$1" pin="RB14/OA1IND/OA2IND/AN10/C3INB" pad="25"/>
 <connect gate="G$1" pin="RB15/AN9/REFO/OA2OUT/C3INA" pad="26"/>
 <connect gate="G$1" pin="RB2/U1RX" pad="6"/>
-<connect gate="G$1" pin="RB3/AN5/OA1OUT/C2INC" pad="7"/>
 <connect gate="G$1" pin="RB4/AN15" pad="11"/>
 <connect gate="G$1" pin="RB7/U1TX" pad="16"/>
-<connect gate="G$1" pin="SCK2/RB5" pad="14"/>
-<connect gate="G$1" pin="SDO2/RB6" pad="15"/>
 <connect gate="G$1" pin="VCAP" pad="20"/>
 <connect gate="G$1" pin="VDD" pad="13"/>
 <connect gate="G$1" pin="VSS" pad="8"/>
@@ -3299,7 +3299,10 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <part name="D1" library="ch_generic" deviceset="ZENER" device="-SOD-123" value="BZT52C11"/>
 <part name="R4" library="ch_passive" deviceset="RESISTOR" device="-0603" value="10K"/>
 <part name="GND12" library="ch_passive" deviceset="GND" device=""/>
-<part name="C12" library="ch_passive" deviceset="CAP" device="1206" value="22uF"/>
+<part name="C12" library="ch_passive" deviceset="CAP" device="1206" value="22uF">
+<attribute name="MANUF" value="Murata"/>
+<attribute name="PN" value="GRM31CR61E226ME15L"/>
+</part>
 <part name="C13" library="ch_passive" deviceset="C" device="-0603" value="0.1"/>
 <part name="C14" library="ch_passive" deviceset="C" device="-0603" value="0.1"/>
 <part name="C15" library="ch_passive" deviceset="C" device="-0603" value="0.1"/>
@@ -3341,6 +3344,12 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <text x="35.56" y="71.12" size="2.54" layer="97">Notes:</text>
 <text x="48.26" y="66.04" size="2.54" layer="97">VBAT 7-50V</text>
 <text x="416.56" y="7.62" size="2.54" layer="97">0</text>
+<text x="48.26" y="60.96" size="1.778" layer="97">look at LT1676</text>
+<text x="38.1" y="60.96" size="1.778" layer="97">todo:</text>
+<text x="48.26" y="55.88" size="1.778" layer="97">add LCD</text>
+<text x="48.26" y="50.8" size="1.778" layer="97">connector for the bridge</text>
+<text x="48.26" y="45.72" size="1.778" layer="97">d2pak bridge</text>
+<text x="48.26" y="40.64" size="1.778" layer="97">rev.pol.prot sot</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0"/>
@@ -3455,6 +3464,8 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <instance part="C12" gate="G$1" x="307.34" y="220.98" smashed="yes" rot="R90">
 <attribute name="NAME" x="302.26" y="226.06" size="1.778" layer="95"/>
 <attribute name="VALUE" x="302.26" y="223.52" size="1.778" layer="96"/>
+<attribute name="MANUF" x="307.34" y="220.98" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="PN" x="307.34" y="220.98" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
 <instance part="C13" gate="G$1" x="307.34" y="205.74" smashed="yes" rot="R270">
 <attribute name="NAME" x="309.88" y="210.82" size="1.778" layer="95"/>
@@ -4087,7 +4098,7 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <label x="182.88" y="99.06" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RA0/AN0/C3INC"/>
+<pinref part="U1" gate="G$1" pin="CN2/RA0"/>
 <wire x1="198.12" y1="175.26" x2="195.58" y2="175.26" width="0.1524" layer="91"/>
 <label x="200.66" y="175.26" size="1.778" layer="95"/>
 </segment>
@@ -4099,7 +4110,7 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <label x="182.88" y="93.98" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RA1/AN1"/>
+<pinref part="U1" gate="G$1" pin="CN3/RA1"/>
 <wire x1="198.12" y1="180.34" x2="195.58" y2="180.34" width="0.1524" layer="91"/>
 <label x="200.66" y="180.34" size="1.778" layer="95"/>
 </segment>
@@ -4111,7 +4122,7 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <label x="139.7" y="99.06" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RB3/AN5/OA1OUT/C2INC"/>
+<pinref part="U1" gate="G$1" pin="CN7/RB3"/>
 <wire x1="198.12" y1="187.96" x2="195.58" y2="187.96" width="0.1524" layer="91"/>
 <label x="200.66" y="187.96" size="1.778" layer="95"/>
 </segment>
@@ -4132,7 +4143,7 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <label x="139.7" y="76.2" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="SCK2/RB5"/>
+<pinref part="U1" gate="G$1" pin="CN27/RB5"/>
 <wire x1="198.12" y1="195.58" x2="195.58" y2="195.58" width="0.1524" layer="91"/>
 <label x="200.66" y="195.58" size="1.778" layer="95"/>
 </segment>
@@ -4148,7 +4159,7 @@ PEC12_HOR - Bourns horizontal PEC12</description>
 <label x="139.7" y="78.74" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RA4/AN16"/>
+<pinref part="U1" gate="G$1" pin="CN0/RA4"/>
 <wire x1="198.12" y1="182.88" x2="195.58" y2="182.88" width="0.1524" layer="91"/>
 <label x="200.66" y="182.88" size="1.778" layer="95"/>
 </segment>
